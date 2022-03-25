@@ -1,0 +1,25 @@
+[package]
+name = "emojiurl"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Web framework
+axum = "0.4"
+
+# HTTP library
+hyper = { version = "0.14", features = ["full"] }
+
+# async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Middleware
+tower = "0.4"
+
+# Serialize/deserialize stuff
+serde = { version = "1.0", features = ["derive"] }
+
+maud = { git = "https://github.com/lambda-fairy/maud", branch = "main", features = ["axum"] }
+
