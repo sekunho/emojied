@@ -1,22 +1,17 @@
 #![forbid(unsafe_code)]
 
-use axum::{
-    Router,
-    handler::Handler,
-    routing::get,
-};
+use axum::{handler::Handler, routing::get, Router};
 
-use emojiurl::layout;
-use emojiurl::fallback;
 use emojiurl::assets;
+use emojiurl::fallback;
+use emojiurl::layout;
 
 #[tokio::main]
 async fn main() {
-    let app =
-        Router::new()
-            .fallback(fallback::not_found.into_service())
-            .route("/", get(layout::home))
-            .route("/app.css", get(assets::stylesheet));
+    let app = Router::new()
+        .fallback(fallback::not_found.into_service())
+        .route("/", get(layout::home))
+        .route("/app.css", get(assets::stylesheet));
 
     axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
         .serve(app.into_make_service())
@@ -33,5 +28,3 @@ async fn signal_shutdown() {
         .expect("expect tokio signal ctrl-c");
     println!("signal shutdown");
 }
-
-

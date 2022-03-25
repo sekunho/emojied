@@ -6,7 +6,6 @@
     nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-
   };
 
   outputs = { self, nixpkgs, nixos-unstable, flake-utils, pre-commit-hooks }:
