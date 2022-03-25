@@ -1,30 +1,22 @@
 #![forbid(unsafe_code)]
 
-use axum::{handler::Handler, routing::get, Router};
-
-use emojiurl::assets;
-use emojiurl::fallback;
-use emojiurl::layout;
+use emojiurl::db::DbHandle;
+use std::process;
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new()
-        .fallback(fallback::not_found.into_service())
-        .route("/", get(layout::home))
-        .route("/app.css", get(assets::stylesheet));
+    match DbHandle::new().await {
+        Ok(db_handle) => {
+            // https://docs.rs/axum/0.4.8/axum/extract/struct.Extension.html
+            if let Err(e) = emojiurl::run(db_handle).await {
+                eprintln!("Application error: {}", e);
+                process::exit(1);
+            }
+        }
 
-    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
-        .serve(app.into_make_service())
-        .with_graceful_shutdown(signal_shutdown())
-        .await
-        .unwrap();
-}
-
-/// Tokio signal handler that will wait for a user to press CTRL+C.
-/// We use this in our hyper `Server` method `with_graceful_shutdown`.
-async fn signal_shutdown() {
-    tokio::signal::ctrl_c()
-        .await
-        .expect("expect tokio signal ctrl-c");
-    println!("signal shutdown");
+        Err(e) => {
+            eprintln!("OH NO: {}", e);
+            process::exit(1);
+        }
+    };
 }
