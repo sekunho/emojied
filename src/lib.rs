@@ -1,7 +1,7 @@
 mod config;
 
 pub mod layout {
-    pub use maud::{DOCTYPE, html, Markup};
+    pub use maud::{html, Markup, DOCTYPE};
 
     fn header(title: &str) -> Markup {
         html! {
@@ -15,29 +15,32 @@ pub mod layout {
     pub async fn home() -> Markup {
         html! {
             (header("emojiURL"))
-            h1 { "Hello, world!" };
+            h1 class="text-red-400" { "Hello, world!" };
 
             @let a = 2;
 
             @if a == 1 {
-                h2 { "Hey again, world!" }
+                h2 class="text-red-500" { "Hey again, world!" }
             }
         }
     }
-
 }
 
 pub mod fallback {
-    pub async fn not_found(
-        uri: axum::http::Uri
-    ) -> impl axum::response::IntoResponse {
-        (axum::http::StatusCode::NOT_FOUND, format!("No route {}", uri))
+    pub async fn not_found(uri: axum::http::Uri) -> impl axum::response::IntoResponse {
+        (
+            axum::http::StatusCode::NOT_FOUND,
+            format!("No route {}", uri),
+        )
     }
 }
 
 pub mod assets {
-    use hyper::{HeaderMap, header::{HeaderName, HeaderValue}};
     use axum::http::StatusCode;
+    use hyper::{
+        header::{HeaderName, HeaderValue},
+        HeaderMap,
+    };
     use std::fs;
 
     pub async fn stylesheet() -> (StatusCode, HeaderMap, String) {
@@ -51,9 +54,8 @@ pub mod assets {
                 );
 
                 (StatusCode::OK, headers, content)
-            },
-            Err(_e) => (StatusCode::NOT_FOUND, headers, String::from("Not found"))
-
+            }
+            Err(_e) => (StatusCode::NOT_FOUND, headers, String::from("Not found")),
         }
     }
 }
