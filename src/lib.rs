@@ -1,61 +1,40 @@
 mod config;
+mod controllers;
+pub mod db;
+mod layouts;
 
-pub mod layout {
-    pub use maud::{html, Markup, DOCTYPE};
+use axum::extract::Extension;
+use axum::handler::Handler;
+use axum::routing;
+use axum::Router;
+use std::sync::Arc;
 
-    fn header(title: &str) -> Markup {
-        html! {
-            (DOCTYPE)
-            meta charset="utf-8";
-            link rel="stylesheet" href="app.css";
-            title { (title) }
-        }
-    }
+pub async fn run(handle: db::DbHandle) -> Result<(), hyper::Error> {
+    // https://docs.rs/axum/0.4.8/axum/extract/struct.Extension.html
+    // TODO: Read about `Arc` because I have no idea what this does.
+    let app_handle = Arc::new(handle);
 
-    pub async fn home() -> Markup {
-        html! {
-            (header("emojiURL"))
-            h1 class="text-red-400" { "Hello, world!" };
-
-            @let a = 2;
-
-            @if a == 1 {
-                h2 class="text-red-500" { "Hey again, world!" }
-            }
-        }
-    }
-}
-
-pub mod fallback {
-    pub async fn not_found(uri: axum::http::Uri) -> impl axum::response::IntoResponse {
-        (
-            axum::http::StatusCode::NOT_FOUND,
-            format!("No route {}", uri),
+    let app = Router::new()
+        .fallback(controllers::not_found.into_service())
+        .route("/", routing::get(controllers::root))
+        .route(
+            "/",
+            routing::post(|handle, body| controllers::insert_url(handle, body)),
         )
-    }
+        .route("/app.css", routing::get(controllers::stylesheet))
+        .layer(Extension(app_handle));
+
+    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+        .serve(app.into_make_service())
+        .with_graceful_shutdown(signal_shutdown())
+        .await
 }
 
-pub mod assets {
-    use axum::http::StatusCode;
-    use hyper::{
-        header::{HeaderName, HeaderValue},
-        HeaderMap,
-    };
-    use std::fs;
-
-    pub async fn stylesheet() -> (StatusCode, HeaderMap, String) {
-        let mut headers = HeaderMap::new();
-
-        match fs::read_to_string("public/app.css") {
-            Ok(content) => {
-                headers.insert(
-                    HeaderName::from_static("content-type"),
-                    HeaderValue::from_static("text/css; charset=utf-8"),
-                );
-
-                (StatusCode::OK, headers, content)
-            }
-            Err(_e) => (StatusCode::NOT_FOUND, headers, String::from("Not found")),
-        }
-    }
+/// Tokio signal handler that will wait for a user to press CTRL+C.
+/// We use this in our hyper `Server` method `with_graceful_shutdown`.
+async fn signal_shutdown() {
+    tokio::signal::ctrl_c()
+        .await
+        .expect("expect tokio signal ctrl-c");
+    println!("signal shutdown");
 }
