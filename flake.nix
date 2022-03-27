@@ -29,9 +29,15 @@
           # inherit (self.checks.${system}.pre-commit-check) shellHook;
 
           buildInputs = with pkgs; [
+            # Back-end
             pkgs.rustc
             pkgs.cargo
+
+            # Front-end
+            unstablepkgs.nodePackages.typescript
+            unstablepkgs.nodePackages.typescript-language-server
             unstablepkgs.nodePackages.tailwindcss
+            unstablepkgs.esbuild
 
             # Database
             pkgs.sqitchPg
