@@ -1,7 +1,7 @@
 // TODO: Use a connection pool for the DB
 
 use hyper::http::Uri;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio_postgres::{Client, Error, NoTls};
 
 pub struct DbHandle {
@@ -16,6 +16,7 @@ struct DbLink {
     path: String,
 }
 
+#[derive(Serialize)]
 pub enum InsertError {
     ParseFailed,
     DuplicateIdentifier,
@@ -38,7 +39,10 @@ impl DbLink {
                     path: path.to_string(),
                 })
             }
-            Err(_) => todo!(),
+            Err(e) => {
+                println!("{}", e);
+                None
+            },
         }
     }
 }
