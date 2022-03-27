@@ -2,8 +2,9 @@
 // https://tailwindcss.com/docs/configuration
 module.exports = {
   content: [
-    './src/lib.rs',
-    './public/**/*.html'
+    './**/*.rs',
+    './public/**/*.html',
+    './assets/**/*.ts'
   ],
   theme: {
     extend: {
