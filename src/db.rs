@@ -39,8 +39,7 @@ impl DbLink {
                     path: path.to_string(),
                 })
             }
-            Err(e) => {
-                println!("{}", e);
+            Err(_e) => {
                 None
             },
         }
@@ -94,16 +93,22 @@ impl DbHandle {
 
                 match rows {
                     Ok(_) => Ok(link.identifier),
-                    Err(e) => {
+                    Err(_e) => {
                         // TODO: Read docs if I can pattern match the data
                         // constructors
-                        println!("{}", e);
                         Err(InsertError::DuplicateIdentifier)
                     }
                 }
             }
             None => Err(InsertError::ParseFailed),
         }
+    }
+
+    pub async fn fetch_url(&self, identifier: String) -> Result<String, Error> {
+        let rows =
+            self.client.query("SELECT app.get_url($1)", &[&identifier]).await.unwrap();
+
+        rows[0].try_get(0)
     }
 }
 
