@@ -34,7 +34,7 @@ CREATE FUNCTION app.get_url(query TEXT)
   RETURNS TEXT
   LANGUAGE sql IMMUTABLE
   AS $$
-    SELECT concat(scheme, '://', '.', hosts.name, path) AS url
+    SELECT concat(scheme, '://', hosts.name, path) AS url
       FROM app.links
       JOIN app.hosts
       ON links.host = hosts.host_id
@@ -42,23 +42,23 @@ CREATE FUNCTION app.get_url(query TEXT)
   $$;
 
 CREATE FUNCTION app.insert_url(
-  identifier TEXT,
+  identifier TEXT, --CHECK length(identifier) > 0,
   scheme     TEXT,
   host       TEXT,
-  path       TEXT
+  path       TEXT -- CHECK length(identifier) > 0
 )
 RETURNS TEXT
 LANGUAGE sql
 AS $$
   INSERT
     INTO app.hosts (name)
-    VALUES ($4)
+    VALUES ($3)
     ON CONFLICT (name) DO NOTHING;
 
   WITH host_cte AS (
     SELECT host_id
       FROM app.hosts
-      WHERE hosts.name = $4
+      WHERE hosts.name = $3
   )
   INSERT INTO app.links (identifier, scheme, host, path)
     (
