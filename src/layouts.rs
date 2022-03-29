@@ -1,6 +1,7 @@
 pub mod root;
 
 use maud::{html, Markup, DOCTYPE, PreEscaped};
+use crate::components::icon;
 
 fn header(title: &str) -> Markup {
     html! {
@@ -20,27 +21,36 @@ fn header(title: &str) -> Markup {
 fn footer() -> Markup {
     html! {
         footer class="bg-gray-100 dark:bg-su-dark-bg-1" {
-            div class="max-w-7xl mx-auto pb-6 pt-2 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8 text-su-fg-1 dark:text-su-dark-fg-1" {
-                span {
+            div class="max-w-7xl mx-auto pb-6 pt-2 px-4 sm:px-6 flex flex-col-reverse items-center md:flex-row md:items-center md:justify-between lg:px-8 text-su-fg-1 dark:text-su-dark-fg-1" {
+                span class="mt-4 md:mt-0" {
                     "Made with "
                     span class="font-bold " { "regret" }
                     " by "
-                    a href="https://twitter.com/sekunho_" target="_blank" class="underline decoration-wavy decoration-red-500 hover:font-bold" {
+                    a href="https://sekun.dev" target="_blank" class="underline decoration-wavy decoration-red-500" {
                         "SEKUN"
                     }
+                    " © 2022"
                 }
 
-                nav class="space-x-4" {
-                    a href="#" {
-                        "Twitter"
+                nav class="space-y-1 sm:space-y-0 space-x-5 flex" {
+                    a target="blank" href="https://ko-fi.com/sekun" {
+                        "Donate"
                     }
 
-                    a href="#" {
-                        "YouTube"
+                    a href="/leaderboard" {
+                        "Leaderboard"
                     }
 
-                    a href="#" {
-                        "GitHub"
+                    a target="blank" href="https://twitter.com/sekunho_" {
+                        (icon::twitter())
+                    }
+
+                    a target="blank" href="https://youtube.com/sekunho" {
+                        (icon::youtube())
+                    }
+
+                    a target="blank" href="https://github.com/sekunho/emojied" {
+                        (icon::github())
                     }
                 }
             }
@@ -71,4 +81,12 @@ pub fn wrapper(inner_content: Markup) -> Markup {
     }
 }
 
-
+fn nav() -> Markup {
+    html! {
+        nav class="w-full max-w-7xl mx-auto p-2.5 flex items-end justify-end text-su-fg-1 dark:text-su-dark-fg-1 font-medium" {
+            a href="/leaderboard" {
+                "Leaderboard"
+            }
+        }
+    }
+}

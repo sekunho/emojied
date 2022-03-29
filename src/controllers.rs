@@ -1,7 +1,7 @@
-use axum::extract::{Extension, Form, Query};
+use axum::extract::{Extension, Form, Query, Path};
 use axum::http::StatusCode;
 use hyper::{
-    header::{HeaderName, HeaderValue},
+    header::{HeaderName, HeaderValue, LOCATION},
     HeaderMap,
 };
 use axum::response::Json;
@@ -13,10 +13,9 @@ use std::sync::Arc;
 
 use crate::db::{CreateUrl, DbHandle};
 use crate::layouts::{self, root::RootData};
+use crate::emoji;
 
 pub async fn root(Query(params): Query<HashMap<String, String>>) -> Markup {
-    println!("{:?}", params);
-
     let custom_url = match params.get(&String::from("custom_url")) {
         Some(_) => true,
         None => false
@@ -47,8 +46,36 @@ pub async fn rpc_insert_url(
 ) -> (StatusCode, Json<Value>) {
     match db_handle.insert_url(data).await {
         Ok(identifier) => (StatusCode::OK, Json(json!({"identifier": identifier}))),
-        Err(e) => (StatusCode::NOT_ACCEPTABLE, Json(json!({ "message": e })))
+        Err(e) => (StatusCode::BAD_REQUEST, Json(json!({ "message": e })))
     }
+}
+
+pub async fn fetch_url(
+    db_handle: Extension<Arc<DbHandle>>,
+    Path(identifier): Path<String>,
+) -> (StatusCode, HeaderMap) {
+    let mut headers = HeaderMap::new();
+
+    if emoji::is_emoji(&identifier) {
+        match db_handle.fetch_url(identifier).await {
+            Ok(u) => {
+                headers.insert(LOCATION, u.parse().unwrap());
+                (StatusCode::MOVED_PERMANENTLY, headers)
+            },
+            Err(_e) => {
+                // TODO: 404 page
+                (StatusCode::NOT_FOUND, headers)
+            },
+        }
+    } else {
+        // TODO: 404 page cause idk what to put for bad request. Do I just say
+        // it's an invalid request? Idk.
+        (StatusCode::BAD_REQUEST, headers)
+    }
+}
+
+pub async fn leaderboard() -> String {
+    "hey".to_string()
 }
 
 pub async fn js() -> (StatusCode, HeaderMap, String) {

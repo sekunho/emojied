@@ -114,8 +114,8 @@ fn form(custom_url: bool) -> Markup {
 
 fn heading() -> Markup {
     html! {
-        div class="mb-4 sm:mb-8" {
-            a href="/" class="text-5xl sm:text-7xl font-serif font-semibold text-su-fg-1 dark:text-su-dark-fg-1" {
+        div class="mb-4 sm:mb-8 flex flex-col justify-center" {
+            a href="/" class="text-5xl sm:text-7xl font-serif font-semibold text-su-fg-1 dark:text-su-dark-fg-1 text-center" {
                 "em"
                 span class="text-3xl sm:text-5xl" { (get_random_emoji()) }
                 "jied!"
@@ -123,7 +123,13 @@ fn heading() -> Markup {
 
             p class="text-center text-lg" {
                 span class="text-su-fg-1 dark:text-su-dark-fg-1/[0.7]" {
-                    "Shorten your links with emojis "
+                    "Shorten your links with "
+                }
+                span class="text-su-fg-1 dark:text-su-dark-fg-1/[0.7] underline" {
+                    "only"
+                }
+                span class="text-su-fg-1 dark:text-su-dark-fg-1/[0.7]" {
+                    " emojis "
                 }
                 "💖✨"
             }

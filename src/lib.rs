@@ -3,6 +3,7 @@ mod controllers;
 pub mod db;
 mod layouts;
 mod components;
+mod emoji;
 
 use axum::extract::Extension;
 use axum::handler::Handler;
@@ -28,6 +29,8 @@ pub async fn run(handle: db::DbHandle) -> Result<(), hyper::Error> {
         .route("/app.css", routing::get(controllers::stylesheet))
         .route("/app.js", routing::get(controllers::js))
         .route("/purify.min.js", routing::get(controllers::purifyjs))
+        .route("/leaderboard", routing::get(controllers::leaderboard))
+        .route("/:id", routing::get(controllers::fetch_url))
         .layer(Extension(app_handle));
 
     axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
