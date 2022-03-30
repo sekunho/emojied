@@ -2,7 +2,7 @@ use maud::{html, Markup};
 use rand::prelude::*;
 
 use crate::components::icon;
-use crate::layouts::wrapper;
+use crate::views::wrapper;
 
 // I could probably make this more domain-specific, but it doesn't feel right.
 pub struct RootData {
