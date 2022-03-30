@@ -1,7 +1,7 @@
 mod config;
 mod controllers;
 pub mod db;
-mod layouts;
+mod views;
 mod components;
 mod emoji;
 

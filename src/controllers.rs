@@ -12,7 +12,7 @@ use std::fs;
 use std::sync::Arc;
 
 use crate::db::{CreateUrl, DbHandle};
-use crate::layouts::{self, root::RootData};
+use crate::views::{self, root::RootData};
 use crate::emoji;
 
 pub async fn root(Query(params): Query<HashMap<String, String>>) -> Markup {
@@ -21,7 +21,7 @@ pub async fn root(Query(params): Query<HashMap<String, String>>) -> Markup {
         None => false
     };
 
-    layouts::root::render(RootData { custom_url, identifier: None })
+    views::root::render(RootData { custom_url, identifier: None })
 }
 
 pub async fn insert_url(
@@ -35,8 +35,8 @@ pub async fn insert_url(
     };
 
     match db_handle.insert_url(form_data).await {
-        Ok(i) => layouts::root::render(RootData { custom_url, identifier: Some(i) }),
-        Err(_e) => layouts::root::render(RootData { custom_url, identifier: None }),
+        Ok(i) => views::root::render(RootData { custom_url, identifier: Some(i) }),
+        Err(_e) => views::root::render(RootData { custom_url, identifier: None }),
     }
 }
 
