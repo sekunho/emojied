@@ -53,24 +53,21 @@ pub async fn rpc_insert_url(
 pub async fn fetch_url(
     db_handle: Extension<Arc<DbHandle>>,
     Path(identifier): Path<String>,
-) -> (StatusCode, HeaderMap) {
+) -> (StatusCode, HeaderMap, Markup) {
     let mut headers = HeaderMap::new();
 
     if emoji::is_emoji(&identifier) {
         match db_handle.fetch_url(identifier).await {
             Ok(u) => {
                 headers.insert(LOCATION, u.parse().unwrap());
-                (StatusCode::MOVED_PERMANENTLY, headers)
+                (StatusCode::MOVED_PERMANENTLY, headers, maud::html! {})
             },
             Err(_e) => {
-                // TODO: 404 page
-                (StatusCode::NOT_FOUND, headers)
+                (StatusCode::NOT_FOUND, headers, views::status::not_found())
             },
         }
     } else {
-        // TODO: 404 page cause idk what to put for bad request. Do I just say
-        // it's an invalid request? Idk.
-        (StatusCode::BAD_REQUEST, headers)
+        (StatusCode::BAD_REQUEST, headers, views::status::not_found())
     }
 }
 
@@ -132,6 +129,6 @@ pub async fn stylesheet() -> (StatusCode, HeaderMap, String) {
 pub async fn not_found(uri: axum::http::Uri) -> impl axum::response::IntoResponse {
     (
         axum::http::StatusCode::NOT_FOUND,
-        format!("No route {}", uri),
+        views::status::not_found(),
     )
 }

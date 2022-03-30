@@ -1,9 +1,9 @@
+mod components;
 mod config;
 mod controllers;
 pub mod db;
-mod views;
-mod components;
 mod emoji;
+mod views;
 
 use axum::extract::Extension;
 use axum::handler::Handler;
@@ -21,11 +21,12 @@ pub async fn run(handle: db::DbHandle) -> Result<(), hyper::Error> {
         .route("/", routing::get(controllers::root))
         .route(
             "/",
-            routing::post(|handle, body, params| {
-                controllers::insert_url(handle, body, params)
-            }),
+            routing::post(|handle, body, params| controllers::insert_url(handle, body, params)),
         )
-        .route("/rpc/shorten-url", routing::post(controllers::rpc_insert_url))
+        .route(
+            "/rpc/shorten-url",
+            routing::post(controllers::rpc_insert_url),
+        )
         .route("/app.css", routing::get(controllers::stylesheet))
         .route("/app.js", routing::get(controllers::js))
         .route("/purify.min.js", routing::get(controllers::purifyjs))
