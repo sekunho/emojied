@@ -29,4 +29,6 @@ postgres-types = { version = "0.2", features = ["derive"] }
 
 rand = "0.8"
 unic-emoji-char = "0.9"
+unic-char-range = "0.9"
 unicode-segmentation = "1.9"
+tiny_id = "0.1"

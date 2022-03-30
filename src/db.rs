@@ -3,6 +3,10 @@
 use hyper::http::Uri;
 use serde::{Deserialize, Serialize};
 use tokio_postgres::{Client, Error, NoTls};
+use tiny_id::ShortCodeGenerator;
+use unic_char_range::{chars, CharRange};
+use unic_emoji_char;
+use crate::emoji;
 
 pub struct DbHandle {
     pub client: Client,
@@ -23,7 +27,22 @@ pub enum InsertError {
 }
 
 impl DbLink {
-    pub fn new(form_data: CreateUrl) -> Option<DbLink> {
+    pub fn new(mut form_data: CreateUrl) -> Option<DbLink> {
+        form_data.identifier = form_data.identifier.trim().to_string();
+
+        form_data.identifier =
+            if form_data.identifier == "" {
+                // TODO: ^ Parse it to a domain type to avoid needless validation
+                // Generate for them
+                new_emoji_id()
+            } else {
+                if emoji::is_emoji(&form_data.identifier) {
+                    form_data.identifier
+                } else {
+                    return None;
+                }
+            };
+
         match form_data.url.parse::<Uri>() {
             Ok(uri) => {
                 let scheme = uri.scheme_str()?;
@@ -40,6 +59,7 @@ impl DbLink {
                 })
             }
             Err(_e) => {
+                // TODO: Actually handle errors? Idk.
                 None
             },
         }
@@ -69,7 +89,6 @@ impl DbHandle {
 
     /// Inserts the URL to be shortened in the DB.
     pub async fn insert_url(&self, data: CreateUrl) -> Result<String, InsertError> {
-        // TODO: Generate random string of emojis
         // TODO: Optionally get emojis from user, and validate it.
 
         match DbLink::new(data) {
@@ -94,8 +113,7 @@ impl DbHandle {
                 match rows {
                     Ok(_) => Ok(link.identifier),
                     Err(_e) => {
-                        // TODO: Read docs if I can pattern match the data
-                        // constructors
+                        // TODO: Read docs if I can pattern match the data constructors
                         Err(InsertError::DuplicateIdentifier)
                     }
                 }
@@ -110,6 +128,25 @@ impl DbHandle {
 
         rows[0].try_get(0)
     }
+}
+
+fn new_emoji_id() -> String {
+    // Sorry!
+    // https://github.com/paulgb/tiny_id/blob/e15277384391524e043110bc0f8adadbc6f3c18d/README.md?plain=1#L93-L98=
+    let emojis: Vec<char> = emoji_range().iter().collect();
+
+    let mut gen =
+        ShortCodeGenerator::with_alphabet(
+            emojis,
+            6
+        );
+
+    gen.next_string()
+}
+
+fn emoji_range() -> CharRange {
+    // https://unicode.org/Public/emoji/14.0/emoji-sequences.txt
+    chars!('\u{1f600}'..='\u{1f64f}')
 }
 
 #[cfg(test)]
@@ -132,5 +169,10 @@ mod tests {
                 path: "".to_string()
             }
         )
+    }
+
+    #[test]
+    fn valid_emoji_range() {
+        assert!(emoji_range().iter().all(|e| unic_emoji_char::is_emoji(e)))
     }
 }

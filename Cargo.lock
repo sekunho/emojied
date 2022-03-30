@@ -143,9 +143,11 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+ "tiny_id",
  "tokio",
  "tokio-postgres",
  "tower",
+ "unic-char-range",
  "unic-emoji-char",
  "unicode-segmentation",
 ]
@@ -755,6 +757,7 @@ dependencies = [
  "libc",
  "rand_chacha",
  "rand_core",
+ "serde",
 ]
 
 [[package]]
@@ -765,6 +768,7 @@ checksum = "e6c10a63a0fa32252be49d21e7709d4d4baf8d231c2dbce1eaa8141b9b127d88"
 dependencies = [
  "ppv-lite86",
  "rand_core",
+ "serde",
 ]
 
 [[package]]
@@ -774,6 +778,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d34f1408f55294453790c48b2f1ebbb1c5b4b7563eb1f418bcfcfdbb06ebb4e7"
 dependencies = [
  "getrandom",
+ "serde",
 ]
 
 [[package]]
@@ -920,6 +925,18 @@ name = "sync_wrapper"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20518fe4a4c9acf048008599e464deb21beeae3d3578418951a189c235a7a9a8"
+
+[[package]]
+name = "tiny_id"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb4439e0f78753c9be85f8042da0515ccb4472802191a0cfefa34709011f5a75"
+dependencies = [
+ "getrandom",
+ "rand",
+ "rand_chacha",
+ "serde",
+]
 
 [[package]]
 name = "tinyvec"
