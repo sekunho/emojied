@@ -15,6 +15,9 @@ use crate::db::{CreateUrl, DbHandle};
 use crate::views::{self, root::RootData};
 use crate::emoji;
 
+// If this was large enough I would've just moved it to its own files but eh.
+// I don't think I really need to tbh.
+
 pub async fn root(Query(params): Query<HashMap<String, String>>) -> Markup {
     let custom_url = match params.get(&String::from("custom_url")) {
         Some(_) => true,
