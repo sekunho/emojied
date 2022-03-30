@@ -1,4 +1,5 @@
 pub mod root;
+pub mod status;
 
 use maud::{html, Markup, DOCTYPE, PreEscaped};
 use crate::components::icon;
@@ -7,12 +8,12 @@ fn header(title: &str) -> Markup {
     html! {
         (DOCTYPE)
         meta charset="utf-8";
-        link rel="stylesheet" href="app.css";
+        link rel="stylesheet" href="/app.css";
         link rel="preconnect" href="https://fonts.googleapis.com";
         link rel="preconnect" href="https://fonts.gstatic.com" crossorigin;
         link href="https://fonts.googleapis.com/css2?family=Vollkorn:wght@600&display=swap&text=emojidt" rel="stylesheet";
 
-        script src="purify.min.js" {}
+        script src="/purify.min.js" {}
 
         title { (title) }
     }
@@ -76,7 +77,7 @@ pub fn wrapper(inner_content: Markup) -> Markup {
                 (PreEscaped("let BASE_URL = 'localhost:3000';\nlet SCHEME = 'http';"))
             }
 
-            script src="app.js" {}
+            script src="/app.js" {}
         }
     }
 }
