@@ -1,4 +1,4 @@
-pub mod root;
+pub mod url;
 pub mod status;
 
 use maud::{html, Markup, DOCTYPE, PreEscaped};
@@ -36,10 +36,6 @@ fn footer() -> Markup {
                 nav class="space-y-1 sm:space-y-0 space-x-5 flex" {
                     a target="blank" href="https://ko-fi.com/sekun" {
                         "Donate"
-                    }
-
-                    a href="/leaderboard" {
-                        "Leaderboard"
                     }
 
                     a target="blank" href="https://twitter.com/sekunho_" {
