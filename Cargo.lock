@@ -137,6 +137,7 @@ name = "emojied"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "futures",
  "hyper",
  "maud",
  "postgres-types",
@@ -146,6 +147,7 @@ dependencies = [
  "tiny_id",
  "tokio",
  "tokio-postgres",
+ "tokio-stream",
  "tower",
  "unic-char-range",
  "unic-emoji-char",
@@ -1005,6 +1007,17 @@ dependencies = [
  "socket2",
  "tokio",
  "tokio-util 0.6.9",
+]
+
+[[package]]
+name = "tokio-stream"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "50145484efff8818b5ccd256697f36863f587da82cf8b409c53adf1e840798e3"
+dependencies = [
+ "futures-core",
+ "pin-project-lite",
+ "tokio",
 ]
 
 [[package]]

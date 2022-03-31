@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 use tokio_postgres::{Client, Error, NoTls};
 use tiny_id::ShortCodeGenerator;
 use unic_char_range::{chars, CharRange};
-use unic_emoji_char;
 use crate::emoji;
 
 pub struct DbHandle {
@@ -18,6 +17,12 @@ struct DbLink {
     scheme: String,
     host: String,
     path: String,
+}
+
+pub struct UrlStat {
+    pub identifier: String,
+    pub url: String,
+    pub clicks: i64
 }
 
 #[derive(Serialize)]
@@ -89,8 +94,6 @@ impl DbHandle {
 
     /// Inserts the URL to be shortened in the DB.
     pub async fn insert_url(&self, data: CreateUrl) -> Result<String, InsertError> {
-        // TODO: Optionally get emojis from user, and validate it.
-
         match DbLink::new(data) {
             Some(link) => {
                 // TODO: Refactor when tokio-postgres supports casting in func args.
@@ -127,6 +130,19 @@ impl DbHandle {
             self.client.query("SELECT app.get_url($1)", &[&identifier]).await.unwrap();
 
         rows[0].try_get(0)
+    }
+
+    pub async fn url_stats(&self, identifier: String) -> Result<UrlStat, Error> {
+        let data = self.client
+            .query("SELECT * from app.get_url_stats($1)", &[&identifier])
+            .await?;
+
+        // TODO: Handle case when `data` is an empty list, cause this just panics.
+        let db_id = data[0].try_get(0)?;
+        let db_clicks = data[0].try_get(1)?;
+        let db_url = data[0].try_get(2)?;
+
+        Ok(UrlStat { identifier: db_id, clicks: db_clicks, url: db_url })
     }
 }
 

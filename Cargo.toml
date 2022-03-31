@@ -14,6 +14,8 @@ hyper = { version = "0.14", features = ["full"] }
 
 # async runtime
 tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
+futures = "0.3"
 
 # Middleware
 tower = "0.4"
