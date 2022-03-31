@@ -1,4 +1,4 @@
--- Deploy emojiurl:links to pg
+-- Deploy emojied:links to pg
 -- requires: extensions
 
 BEGIN;

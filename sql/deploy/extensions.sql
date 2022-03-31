@@ -1,4 +1,4 @@
--- Deploy emojiurl:extensions to pg
+-- Deploy emojied:extensions to pg
 
 BEGIN;
 

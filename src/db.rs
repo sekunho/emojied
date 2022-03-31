@@ -75,7 +75,7 @@ pub struct CreateUrl {
 impl DbHandle {
     pub async fn new() -> Result<DbHandle, Error> {
         let (client, connection) =
-            tokio_postgres::connect("host=localhost user=postgres dbname=emojiurl_db", NoTls)
+            tokio_postgres::connect("host=localhost user=postgres dbname=emojied_db", NoTls)
                 .await?;
 
         tokio::spawn(async move {
