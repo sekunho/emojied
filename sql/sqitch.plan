@@ -1,6 +1,6 @@
 %syntax-version=1.0.0
-%project=emojiurl
-%uri=https://github.com/sekunho/emojiurl
+%project=emojied
+%uri=https://github.com/sekunho/emojied
 
 extensions 2022-03-26T04:25:35Z sekun <sekun@nixos> # Extensions needed in PostgreSQL
 links 2022-03-26T02:31:20Z sekun <sekun@nixos> # Contains the links to shorten, and their identifiers

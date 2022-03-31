@@ -1,4 +1,4 @@
--- Revert emojiurl:links from pg
+-- Revert emojied:links from pg
 
 BEGIN;
 

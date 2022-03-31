@@ -1,4 +1,4 @@
--- Verify emojiurl:links on pg
+-- Verify emojied:links on pg
 
 BEGIN;
 
