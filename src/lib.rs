@@ -31,10 +31,11 @@ pub async fn run(handle: db::DbHandle) -> Result<(), hyper::Error> {
         .route("/app.js", routing::get(controllers::js))
         .route("/purify.min.js", routing::get(controllers::purifyjs))
         .route("/leaderboard", routing::get(controllers::leaderboard))
+        .route("/stats/:id", routing::get(controllers::url_stats))
         .route("/:id", routing::get(controllers::fetch_url))
         .layer(Extension(app_handle));
 
-    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+    axum::Server::bind(&"127.0.0.1:3000".parse().unwrap())
         .serve(app.into_make_service())
         .with_graceful_shutdown(signal_shutdown())
         .await

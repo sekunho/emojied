@@ -1,55 +1,74 @@
-use axum::extract::{Extension, Form, Query, Path};
+use axum::extract::{Extension, Form, Path, Query};
 use axum::http::StatusCode;
+use axum::response::Json;
 use hyper::{
     header::{HeaderName, HeaderValue, LOCATION},
     HeaderMap,
 };
-use axum::response::Json;
 use maud::Markup;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::fs;
 use std::sync::Arc;
 
 use crate::db::{CreateUrl, DbHandle};
-use crate::views::{self, root::RootData};
 use crate::emoji;
+use crate::views::{self, url::RootData};
 
-// If this was large enough I would've just moved it to its own files but eh.
-// I don't think I really need to tbh.
+// TODO: Move stuff to their own modules
+// TODO: Implement SSE for URL stats page
 
 pub async fn root(Query(params): Query<HashMap<String, String>>) -> Markup {
     let custom_url = match params.get(&String::from("custom_url")) {
         Some(_) => true,
-        None => false
+        None => false,
     };
 
-    views::root::render(RootData { custom_url, identifier: None })
+    views::url::render(RootData {
+        custom_url,
+        identifier: None,
+    })
 }
 
 pub async fn insert_url(
     db_handle: Extension<Arc<DbHandle>>,
     Form(form_data): Form<CreateUrl>,
-    Query(params): Query<HashMap<String, String>>
+    Query(params): Query<HashMap<String, String>>,
 ) -> Markup {
     let custom_url = match params.get(&String::from("custom_url")) {
         Some(_) => true,
-        None => false
+        None => false,
     };
 
     match db_handle.insert_url(form_data).await {
-        Ok(i) => views::root::render(RootData { custom_url, identifier: Some(i) }),
-        Err(_e) => views::root::render(RootData { custom_url, identifier: None }),
+        Ok(i) => views::url::render(RootData {
+            custom_url,
+            identifier: Some(i),
+        }),
+        Err(_e) => views::url::render(RootData {
+            custom_url,
+            identifier: None,
+        }),
     }
 }
 
 pub async fn rpc_insert_url(
     db_handle: Extension<Arc<DbHandle>>,
-    Json(data): Json<CreateUrl>
+    Json(data): Json<CreateUrl>,
 ) -> (StatusCode, Json<Value>) {
     match db_handle.insert_url(data).await {
-        Ok(identifier) => (StatusCode::OK, Json(json!({"identifier": identifier}))),
-        Err(e) => (StatusCode::BAD_REQUEST, Json(json!({ "message": e })))
+        Ok(identifier) => (StatusCode::OK, Json(json!({ "identifier": identifier }))),
+        Err(e) => (StatusCode::BAD_REQUEST, Json(json!({ "message": e }))),
+    }
+}
+
+pub async fn url_stats(
+    db_handle: Extension<Arc<DbHandle>>,
+    Path(identifier): Path<String>,
+) -> (StatusCode, Markup) {
+    match db_handle.url_stats(identifier).await {
+        Ok(url_stat) => (StatusCode::OK, views::url::view_stats(url_stat)),
+        Err(_) => (StatusCode::NOT_FOUND, views::status::not_found()),
     }
 }
 
@@ -63,11 +82,12 @@ pub async fn fetch_url(
         match db_handle.fetch_url(identifier).await {
             Ok(u) => {
                 headers.insert(LOCATION, u.parse().unwrap());
-                (StatusCode::MOVED_PERMANENTLY, headers, maud::html! {})
-            },
-            Err(_e) => {
-                (StatusCode::NOT_FOUND, headers, views::status::not_found())
-            },
+
+                // Not 301 cause 301 gets cached while 307 (temp redirect)
+                // isn't cached by the browser.
+                (StatusCode::TEMPORARY_REDIRECT, headers, maud::html! {})
+            }
+            Err(_e) => (StatusCode::NOT_FOUND, headers, views::status::not_found()),
         }
     } else {
         (StatusCode::BAD_REQUEST, headers, views::status::not_found())

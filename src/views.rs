@@ -1,4 +1,4 @@
-pub mod root;
+pub mod url;
 pub mod status;
 
 use maud::{html, Markup, DOCTYPE, PreEscaped};
