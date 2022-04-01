@@ -3,6 +3,8 @@
 use emojied::db::DbHandle;
 use std::process;
 
+// TODO: Read env vars for config
+
 #[tokio::main]
 async fn main() {
     match DbHandle::new().await {

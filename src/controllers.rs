@@ -34,21 +34,30 @@ pub async fn insert_url(
     db_handle: Extension<Arc<DbHandle>>,
     Form(form_data): Form<CreateUrl>,
     Query(params): Query<HashMap<String, String>>,
-) -> Markup {
+) -> (StatusCode, Markup) {
     let custom_url = match params.get(&String::from("custom_url")) {
         Some(_) => true,
         None => false,
     };
 
+    // TODO: This is so ugly. *spits*
     match db_handle.insert_url(form_data).await {
-        Ok(i) => views::url::render(RootData {
-            custom_url,
-            identifier: Some(i),
-        }),
-        Err(_e) => views::url::render(RootData {
-            custom_url,
-            identifier: None,
-        }),
+        Ok(i) => {
+            let content = views::url::render(RootData {
+                custom_url,
+                identifier: Some(i),
+            });
+
+            (StatusCode::OK, content)
+        },
+        Err(_e) => {
+            let content = views::url::render(RootData {
+                custom_url,
+                identifier: None,
+            });
+
+            (StatusCode::BAD_REQUEST, content)
+        },
     }
 }
 
