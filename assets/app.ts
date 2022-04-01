@@ -87,7 +87,15 @@ form.addEventListener("submit", (e: SubmitEvent) => {
     }
 
     addUrlEntry(data.identifier);
-  }).catch(e => console.log(e));
+  }).catch(_e => {
+    alert(`I ran into a problem!\n
+Alright, listen, I barely spent any time with error handling. Two possible
+scenarios:
+
+1. Not a valid URL
+2. You're not using emojis
+`)
+  });
 });
 
 toggleCustomUrl.addEventListener("click", () => {
