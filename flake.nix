@@ -5,7 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs";
     nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    naersk.url = "github:nix-community/naersk";
+    naersk.url = "github:nix-community/naersk?rev=bd4822e754eba04977667ab8a9e5314ae126cc1c";
     # pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
   };
 
@@ -30,9 +30,11 @@
         #   };
         # };
 
+        # NOTE: Build still fails the same way
         packages.emojied = naersk-lib.buildPackage {
           pname = "emojied";
           root = ./.;
+          gitSubmodules = true;
         };
 
         defaultPackage = packages.emojied;
