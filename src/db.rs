@@ -2,13 +2,13 @@
 
 use hyper::http::Uri;
 use serde::{Deserialize, Serialize};
-use tokio_postgres::{Client, Error, NoTls};
+use tokio_postgres::NoTls;
 use tiny_id::ShortCodeGenerator;
 use unic_char_range::{chars, CharRange};
 use crate::emoji;
 
-pub struct DbHandle {
-    pub client: Client,
+pub struct Handle {
+    pub client: tokio_postgres::Client,
 }
 
 #[derive(Debug, PartialEq)]
@@ -26,9 +26,13 @@ pub struct UrlStat {
 }
 
 #[derive(Serialize)]
-pub enum InsertError {
-    ParseFailed,
+pub enum Error {
+    URIParseFailed,
+    IdentifierParseFailed,
+    NoRecord,
     DuplicateIdentifier,
+    DbPooped,
+    EmptyColumn
 }
 
 impl DbLink {
@@ -36,16 +40,14 @@ impl DbLink {
         form_data.identifier = form_data.identifier.trim().to_string();
 
         form_data.identifier =
-            if form_data.identifier == "" {
+            if form_data.identifier.is_empty() {
                 // TODO: ^ Parse it to a domain type to avoid needless validation
                 // Generate for them
                 new_emoji_id()
-            } else {
-                if emoji::is_emoji(&form_data.identifier) {
+            } else if emoji::is_valid(&form_data.identifier) {
                     form_data.identifier
-                } else {
-                    return None;
-                }
+            } else {
+                return None;
             };
 
         match form_data.url.parse::<Uri>() {
@@ -77,8 +79,8 @@ pub struct CreateUrl {
     pub identifier: String,
 }
 
-impl DbHandle {
-    pub async fn new() -> Result<DbHandle, Error> {
+impl Handle {
+    pub async fn new() -> Result<Handle, tokio_postgres::Error> {
         let (client, connection) =
             tokio_postgres::connect("host=localhost user=postgres dbname=emojied_db", NoTls)
                 .await?;
@@ -89,11 +91,18 @@ impl DbHandle {
             }
         });
 
-        Ok(DbHandle { client })
+        Ok(Handle { client })
     }
 
     /// Inserts the URL to be shortened in the DB.
-    pub async fn insert_url(&self, data: CreateUrl) -> Result<String, InsertError> {
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` when:
+    ///
+    /// 1) The insert fails due to duplicate identifiers
+    /// 2) Parsing of the URI fails
+    pub async fn insert_url(&self, data: CreateUrl) -> Result<String, Error> {
         match DbLink::new(data) {
             Some(link) => {
                 // TODO: Refactor when tokio-postgres supports casting in func args.
@@ -116,33 +125,69 @@ impl DbHandle {
                 match rows {
                     Ok(_) => Ok(link.identifier),
                     Err(_e) => {
-                        // TODO: Read docs if I can pattern match the data constructors
-                        Err(InsertError::DuplicateIdentifier)
+                        Err(Error::DuplicateIdentifier)
                     }
                 }
             }
-            None => Err(InsertError::ParseFailed),
+            None => Err(Error::URIParseFailed),
         }
     }
 
-    pub async fn fetch_url(&self, identifier: String) -> Result<String, Error> {
-        let rows =
-            self.client.query("SELECT app.get_url($1)", &[&identifier]).await.unwrap();
-
-        rows[0].try_get(0)
-    }
-
+    /// # Errors
+    ///
+    /// Will return `Err` when it fails to communicate with the DB.
     pub async fn url_stats(&self, identifier: String) -> Result<UrlStat, Error> {
         let data = self.client
             .query("SELECT * from app.get_url_stats($1)", &[&identifier])
-            .await?;
+            .await;
 
-        // TODO: Handle case when `data` is an empty list, cause this just panics.
-        let db_id = data[0].try_get(0)?;
-        let db_clicks = data[0].try_get(1)?;
-        let db_url = data[0].try_get(2)?;
+        match data {
+            Ok(data) => {
+                // Dear god this is painful
+                let db_id = match data[0].try_get(0) {
+                    Ok(db_id) => db_id,
+                    Err(_) => { return Err(Error::EmptyColumn); }
+                };
 
-        Ok(UrlStat { identifier: db_id, clicks: db_clicks, url: db_url })
+                let db_clicks = match data[0].try_get(1) {
+                    Ok(db_clicks) => db_clicks,
+                    Err(_) => { return Err(Error::EmptyColumn); }
+                };
+
+                let db_url = match data[0].try_get(2) {
+                    Ok(db_url) => db_url,
+                    Err(_) => { return Err(Error::EmptyColumn); }
+                };
+
+                Ok(UrlStat { identifier: db_id, clicks: db_clicks, url: db_url })
+            },
+            Err(_) => Err(Error::DbPooped),
+        }
+    }
+
+    /// # Errors
+    ///
+    /// Will return `Err` when:
+    ///
+    /// 1) `get_url` is NULL, which tbh is not possible but it's a function.
+    /// 2) it runs into a problem in communicating with the DB.
+    pub async fn fetch_url(
+        &self,
+        identifier: String
+    ) -> Result<String, Error> {
+        let rows = self.client
+            .query("SELECT app.get_url($1)", &[&identifier]).await;
+
+        match rows {
+            Ok(rows) => {
+                // I don't think it's really a NoRecord. More like NULL col?
+                match rows[0].try_get(0) {
+                    Ok(url) => Ok(url),
+                    Err(_) => Err(Error::EmptyColumn),
+                }
+            },
+            Err(_e) => Err(Error::DbPooped)
+        }
     }
 }
 

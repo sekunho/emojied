@@ -40,7 +40,7 @@ pub fn render(data: RootData) -> Markup {
         }
     };
 
-    wrapper(home_content)
+    wrapper(&home_content)
 }
 
 fn form(custom_url: bool) -> Markup {
@@ -113,7 +113,7 @@ fn form(custom_url: bool) -> Markup {
     }
 }
 
-pub fn view_stats(url_stats: UrlStat) -> Markup {
+pub fn view_stats(url_stats: &UrlStat) -> Markup {
     let content = html! {
         div class="flex-1 flex flex-col items-center justify-center" {
             div class="flex flex-col justify-center items-center" {
@@ -149,7 +149,7 @@ pub fn view_stats(url_stats: UrlStat) -> Markup {
         }
     };
 
-    wrapper(content)
+    wrapper(&content)
 }
 
 fn heading() -> Markup {
@@ -183,7 +183,7 @@ fn get_random_emoji() -> String {
 
     ['🐵', '🍆', '🎱', '😶']
         .into_iter()
-        .map(|el| String::from(el))
+        .map(String::from)
         .choose(&mut rng)
         .unwrap()
 }

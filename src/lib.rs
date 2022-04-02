@@ -11,7 +11,7 @@ use axum::routing;
 use axum::Router;
 use std::sync::Arc;
 
-pub async fn run(handle: db::DbHandle) -> Result<(), hyper::Error> {
+pub async fn run(handle: db::Handle) -> Result<(), hyper::Error> {
     // https://docs.rs/axum/0.4.8/axum/extract/struct.Extension.html
     // TODO: Read about `Arc` because I have no idea what this does.
     let app_handle = Arc::new(handle);
@@ -19,10 +19,7 @@ pub async fn run(handle: db::DbHandle) -> Result<(), hyper::Error> {
     let app = Router::new()
         .fallback(controllers::not_found.into_service())
         .route("/", routing::get(controllers::root))
-        .route(
-            "/",
-            routing::post(|handle, body, params| controllers::insert_url(handle, body, params)),
-        )
+        .route("/", routing::post(controllers::insert_url))
         .route(
             "/rpc/shorten-url",
             routing::post(controllers::rpc_insert_url),
