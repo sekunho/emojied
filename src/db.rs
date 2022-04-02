@@ -22,28 +22,26 @@ pub struct UrlStat {
 }
 
 #[derive(Serialize)]
-pub enum DbError {
+pub enum Error {
     URIParseFailed,
     IdentifierParseFailed,
     NoRecord,
     DuplicateIdentifier,
-    SQLXError,
+    SQLX,
 }
 
 impl DbLink {
     pub fn new(mut form_data: CreateUrl) -> Option<DbLink> { form_data.identifier = form_data.identifier.trim().to_string();
 
         form_data.identifier =
-            if form_data.identifier == "" {
+            if form_data.identifier.is_empty() {
                 // TODO: ^ Parse it to a domain type to avoid needless validation
                 // Generate for them
                 new_emoji_id()
-            } else {
-                if emoji::is_emoji(&form_data.identifier) {
+            } else if emoji::is_valid(&form_data.identifier) {
                     form_data.identifier
-                } else {
-                    return None;
-                }
+            } else {
+                return None;
             };
 
         match form_data.url.parse::<Uri>() {
@@ -75,12 +73,15 @@ pub struct CreateUrl {
     pub identifier: String,
 }
 
-pub struct DbHandle {
+pub struct Handle {
     pub pool: Pool<Postgres>,
 }
 
-impl DbHandle {
-    pub async fn new() -> Result<DbHandle, sqlx::Error> {
+impl Handle {
+    /// # Errors
+    ///
+    /// Will return `Err` if the connection to the database fails.
+    pub async fn new() -> Result<Handle, sqlx::Error> {
         // TODO: Load database URL from `AppConfig`
         // Create a connection pool
         let pool = PgPoolOptions::new()
@@ -88,15 +89,23 @@ impl DbHandle {
             .connect("postgres://postgres@localhost/emojied_db")
             .await?;
 
-        Ok(DbHandle { pool })
+        Ok(Handle { pool })
     }
 
     /// Inserts the URL to be shortened in the DB.
-    pub async fn insert_url(&self, data: CreateUrl) -> Result<String, DbError> {
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` when:
+    ///
+    /// 1) The insert fails due to duplicate identifiers
+    /// 2) Parsing of the URI fails
+    pub async fn insert_url(&self, data: CreateUrl) -> Result<String, Error> {
         match DbLink::new(data) {
             Some(link) => {
                 let rows = sqlx::query!(
                         "SELECT app.insert_url($1, $2, $3, $4)",
+                        // Not sure why it would panic here (accordin to clippy)
                         &link.identifier,
                         &link.scheme,
                         &link.host,
@@ -109,18 +118,24 @@ impl DbHandle {
                     Ok(_) => Ok(link.identifier),
                     Err(_e) => {
                         // TODO: Read docs if I can pattern match the data constructors
-                        Err(DbError::DuplicateIdentifier)
+                        Err(Error::DuplicateIdentifier)
                     }
                 }
             }
-            None => Err(DbError::URIParseFailed),
+            None => Err(Error::URIParseFailed),
         }
     }
 
+    /// # Errors
+    ///
+    /// Will return `Err` when:
+    ///
+    /// 1) `get_url` is NULL, which tbh is not possible but it's a function.
+    /// 2) SQLx runs into a problem in communicating with the DB.
     pub async fn fetch_url(
         &self,
         identifier: String
-        ) -> Result<String, DbError> {
+    ) -> Result<String, Error> {
         let row = sqlx::query!("SELECT app.get_url($1)", &identifier)
             .fetch_one(&self.pool)
             .await;
@@ -130,17 +145,20 @@ impl DbHandle {
                 if let Some(url) = row.get_url {
                     Ok(url)
                 } else {
-                    Err(DbError::NoRecord)
+                    Err(Error::NoRecord)
                 }
             },
-            Err(_e) => Err(DbError::SQLXError)
+            Err(_e) => Err(Error::SQLX)
         }
     }
 
+    /// # Errors
+    ///
+    /// Will return `Err` when `SQLx` fails when trying to communicate with the DB.
     pub async fn url_stats(
         &self,
         identifier: String
-    ) -> Result<UrlStat, DbError> {
+    ) -> Result<UrlStat, Error> {
         let row = sqlx::query!("SELECT * FROM app.get_url_stats($1)", &identifier)
             .fetch_one(&self.pool)
             .await;
@@ -154,7 +172,7 @@ impl DbHandle {
 
                 Ok(UrlStat { identifier: db_id, clicks: db_clicks, url: db_url })
             }
-            Err(_e) => Err(DbError::SQLXError)
+            Err(_e) => Err(Error::SQLX)
         }
     }
 }

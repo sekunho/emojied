@@ -1,13 +1,13 @@
 #![forbid(unsafe_code)]
 
-use emojied::db::DbHandle;
+use emojied::db;
 use std::process;
 
 // TODO: Read env vars for config
 
 #[tokio::main]
 async fn main() {
-    match DbHandle::new().await {
+    match db::Handle::new().await {
         Ok(db_handle) => {
             // https://docs.rs/axum/0.4.8/axum/extract/struct.Extension.html
             if let Err(e) = emojied::run(db_handle).await {
