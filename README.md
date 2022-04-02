@@ -15,6 +15,16 @@ Shorten your URLs with emojis!
 - View URL clicks (simple stats for now)
 - Do you hate enabling JS? Well, this works completely fine with JS disabled!\*
 
+## Getting Started
+
+### Setup
+
+WIP
+
+### Config
+
+- `DATABASE_URL` (required)
+
 ## Concepts I have to study in more depth
 
 - Traits: Besides the similarities this shares with Haskell's typeclasses, there

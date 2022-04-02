@@ -2,14 +2,10 @@
 
 use hyper::http::Uri;
 use serde::{Deserialize, Serialize};
-use tokio_postgres::{Client, Error, NoTls};
+use sqlx::{postgres::PgPoolOptions, Postgres, Pool};
 use tiny_id::ShortCodeGenerator;
 use unic_char_range::{chars, CharRange};
 use crate::emoji;
-
-pub struct DbHandle {
-    pub client: Client,
-}
 
 #[derive(Debug, PartialEq)]
 struct DbLink {
@@ -26,14 +22,16 @@ pub struct UrlStat {
 }
 
 #[derive(Serialize)]
-pub enum InsertError {
-    ParseFailed,
+pub enum DbError {
+    URIParseFailed,
+    IdentifierParseFailed,
+    NoRecord,
     DuplicateIdentifier,
+    SQLXError,
 }
 
 impl DbLink {
-    pub fn new(mut form_data: CreateUrl) -> Option<DbLink> {
-        form_data.identifier = form_data.identifier.trim().to_string();
+    pub fn new(mut form_data: CreateUrl) -> Option<DbLink> { form_data.identifier = form_data.identifier.trim().to_string();
 
         form_data.identifier =
             if form_data.identifier == "" {
@@ -77,72 +75,87 @@ pub struct CreateUrl {
     pub identifier: String,
 }
 
+pub struct DbHandle {
+    pub pool: Pool<Postgres>,
+}
+
 impl DbHandle {
-    pub async fn new() -> Result<DbHandle, Error> {
-        let (client, connection) =
-            tokio_postgres::connect("host=localhost user=postgres dbname=emojied_db", NoTls)
-                .await?;
+    pub async fn new() -> Result<DbHandle, sqlx::Error> {
+        // TODO: Load database URL from `AppConfig`
+        // Create a connection pool
+        let pool = PgPoolOptions::new()
+            .max_connections(5)
+            .connect("postgres://postgres@localhost/emojied_db")
+            .await?;
 
-        tokio::spawn(async move {
-            if let Err(e) = connection.await {
-                eprintln!("Error: {}", e);
-            }
-        });
-
-        Ok(DbHandle { client })
+        Ok(DbHandle { pool })
     }
 
     /// Inserts the URL to be shortened in the DB.
-    pub async fn insert_url(&self, data: CreateUrl) -> Result<String, InsertError> {
+    pub async fn insert_url(&self, data: CreateUrl) -> Result<String, DbError> {
         match DbLink::new(data) {
             Some(link) => {
-                // TODO: Refactor when tokio-postgres supports casting in func args.
-                // e.g SELECT app.insert_url($1, $2::app.SCHEME, $3, $4, $5)
-                // ^ doesn't work since it doesn't respect `::app.SCHEME`.
-                //
-                // ```
-                // Err(Error { kind: ToSql(1), cause: Some(WrongType { postgres: Other(
-                // Other { name: "scheme", oid: 256012, kind: Enum(["http",
-                // "https"]), schema: "app" }), rust: "str" }) })
-                // ```
-                let rows = self
-                    .client
-                    .query(
+                let rows = sqlx::query!(
                         "SELECT app.insert_url($1, $2, $3, $4)",
-                        &[&link.identifier, &link.scheme, &link.host, &link.path],
+                        &link.identifier,
+                        &link.scheme,
+                        &link.host,
+                        &link.path
                     )
+                    .fetch_one(&self.pool)
                     .await;
 
                 match rows {
                     Ok(_) => Ok(link.identifier),
                     Err(_e) => {
                         // TODO: Read docs if I can pattern match the data constructors
-                        Err(InsertError::DuplicateIdentifier)
+                        Err(DbError::DuplicateIdentifier)
                     }
                 }
             }
-            None => Err(InsertError::ParseFailed),
+            None => Err(DbError::URIParseFailed),
         }
     }
 
-    pub async fn fetch_url(&self, identifier: String) -> Result<String, Error> {
-        let rows =
-            self.client.query("SELECT app.get_url($1)", &[&identifier]).await.unwrap();
+    pub async fn fetch_url(
+        &self,
+        identifier: String
+        ) -> Result<String, DbError> {
+        let row = sqlx::query!("SELECT app.get_url($1)", &identifier)
+            .fetch_one(&self.pool)
+            .await;
 
-        rows[0].try_get(0)
+        match row {
+            Ok(row) => {
+                if let Some(url) = row.get_url {
+                    Ok(url)
+                } else {
+                    Err(DbError::NoRecord)
+                }
+            },
+            Err(_e) => Err(DbError::SQLXError)
+        }
     }
 
-    pub async fn url_stats(&self, identifier: String) -> Result<UrlStat, Error> {
-        let data = self.client
-            .query("SELECT * from app.get_url_stats($1)", &[&identifier])
-            .await?;
+    pub async fn url_stats(
+        &self,
+        identifier: String
+    ) -> Result<UrlStat, DbError> {
+        let row = sqlx::query!("SELECT * FROM app.get_url_stats($1)", &identifier)
+            .fetch_one(&self.pool)
+            .await;
 
-        // TODO: Handle case when `data` is an empty list, cause this just panics.
-        let db_id = data[0].try_get(0)?;
-        let db_clicks = data[0].try_get(1)?;
-        let db_url = data[0].try_get(2)?;
+        match row {
+            Ok(row) => {
+                // NOTE: Idk, the columns have NOT NULL constraints on them.
+                let db_id = row.identifier.unwrap();
+                let db_clicks = row.clicks.unwrap();
+                let db_url = row.url.unwrap();
 
-        Ok(UrlStat { identifier: db_id, clicks: db_clicks, url: db_url })
+                Ok(UrlStat { identifier: db_id, clicks: db_clicks, url: db_url })
+            }
+            Err(_e) => Err(DbError::SQLXError)
+        }
     }
 }
 

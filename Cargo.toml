@@ -23,11 +23,11 @@ tower = "0.4"
 # Serialize/deserialize stuff
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
+
 maud = { git = "https://github.com/lambda-fairy/maud", branch = "main", features = ["axum"] }
 
 # Database
-tokio-postgres = "0.7"
-postgres-types = { version = "0.2", features = ["derive"] }
+sqlx = { version = "0.5", features = [ "runtime-tokio-rustls", "postgres", "macros", "uuid" ] }
 
 rand = "0.8"
 unic-emoji-char = "0.9"
