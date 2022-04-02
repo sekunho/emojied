@@ -56,7 +56,7 @@ fn footer() -> Markup {
     }
 }
 
-pub fn wrapper(inner_content: Markup) -> Markup {
+pub fn wrapper(inner_content: &Markup) -> Markup {
     html! {
         (header("emojied - Emoji URL Shortener"))
 
@@ -78,12 +78,12 @@ pub fn wrapper(inner_content: Markup) -> Markup {
     }
 }
 
-fn nav() -> Markup {
-    html! {
-        nav class="w-full max-w-7xl mx-auto p-2.5 flex items-end justify-end text-su-fg-1 dark:text-su-dark-fg-1 font-medium" {
-            a href="/leaderboard" {
-                "Leaderboard"
-            }
-        }
-    }
-}
+// fn nav() -> Markup {
+//     html! {
+//         nav class="w-full max-w-7xl mx-auto p-2.5 flex items-end justify-end text-su-fg-1 dark:text-su-dark-fg-1 font-medium" {
+//             a href="/leaderboard" {
+//                 "Leaderboard"
+//             }
+//         }
+//     }
+// }

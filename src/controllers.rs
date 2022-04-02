@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::sync::Arc;
 
-use crate::db::{CreateUrl, DbHandle};
+use crate::db::{CreateUrl, Handle};
 use crate::emoji;
 use crate::views::{self, url::RootData};
 
@@ -19,10 +19,7 @@ use crate::views::{self, url::RootData};
 // TODO: Implement SSE for URL stats page
 
 pub async fn root(Query(params): Query<HashMap<String, String>>) -> Markup {
-    let custom_url = match params.get(&String::from("custom_url")) {
-        Some(_) => true,
-        None => false,
-    };
+    let custom_url = params.get(&String::from("custom_url")).is_some();
 
     views::url::render(RootData {
         custom_url,
@@ -31,14 +28,11 @@ pub async fn root(Query(params): Query<HashMap<String, String>>) -> Markup {
 }
 
 pub async fn insert_url(
-    db_handle: Extension<Arc<DbHandle>>,
+    db_handle: Extension<Arc<Handle>>,
     Form(form_data): Form<CreateUrl>,
     Query(params): Query<HashMap<String, String>>,
 ) -> (StatusCode, Markup) {
-    let custom_url = match params.get(&String::from("custom_url")) {
-        Some(_) => true,
-        None => false,
-    };
+    let custom_url = params.get(&String::from("custom_url")).is_some();
 
     // TODO: This is so ugly. *spits*
     match db_handle.insert_url(form_data).await {
@@ -62,7 +56,7 @@ pub async fn insert_url(
 }
 
 pub async fn rpc_insert_url(
-    db_handle: Extension<Arc<DbHandle>>,
+    db_handle: Extension<Arc<Handle>>,
     Json(data): Json<CreateUrl>,
 ) -> (StatusCode, Json<Value>) {
     match db_handle.insert_url(data).await {
@@ -72,22 +66,22 @@ pub async fn rpc_insert_url(
 }
 
 pub async fn url_stats(
-    db_handle: Extension<Arc<DbHandle>>,
+    db_handle: Extension<Arc<Handle>>,
     Path(identifier): Path<String>,
 ) -> (StatusCode, Markup) {
     match db_handle.url_stats(identifier).await {
-        Ok(url_stat) => (StatusCode::OK, views::url::view_stats(url_stat)),
+        Ok(url_stat) => (StatusCode::OK, views::url::view_stats(&url_stat)),
         Err(_) => (StatusCode::NOT_FOUND, views::status::not_found()),
     }
 }
 
 pub async fn fetch_url(
-    db_handle: Extension<Arc<DbHandle>>,
+    db_handle: Extension<Arc<Handle>>,
     Path(identifier): Path<String>,
 ) -> (StatusCode, HeaderMap, Markup) {
     let mut headers = HeaderMap::new();
 
-    if emoji::is_emoji(&identifier) {
+    if emoji::is_valid(&identifier) {
         match db_handle.fetch_url(identifier).await {
             Ok(u) => {
                 headers.insert(LOCATION, u.parse().unwrap());
@@ -158,7 +152,7 @@ pub async fn stylesheet() -> (StatusCode, HeaderMap, String) {
     }
 }
 
-pub async fn not_found(uri: axum::http::Uri) -> impl axum::response::IntoResponse {
+pub async fn not_found(_uri: axum::http::Uri) -> impl axum::response::IntoResponse {
     (
         axum::http::StatusCode::NOT_FOUND,
         views::status::not_found(),

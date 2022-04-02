@@ -1,4 +1,4 @@
-pub struct Config {
-    pub database_url: String,
-    pub host: String,
-}
+// pub struct Config {
+//     pub database_url: String,
+//     pub host: String,
+// }

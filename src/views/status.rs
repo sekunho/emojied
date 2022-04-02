@@ -14,5 +14,5 @@ pub fn not_found() -> Markup {
         }
     };
 
-    wrapper(content)
+    wrapper(&content)
 }
