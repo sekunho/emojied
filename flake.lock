@@ -1,5 +1,22 @@
 {
   "nodes": {
+    "crate2nix": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1648874746,
+        "narHash": "sha256-56jsxxZqzNlo4U+CzPabSSY0XGutyD/l9oUgFcm+QWQ=",
+        "owner": "sekunho",
+        "repo": "crate2nix",
+        "rev": "4d5321104819db151bb88746f77e44b0f7a7c5a9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sekunho",
+        "ref": "sekunho/dedup-sources",
+        "repo": "crate2nix",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "locked": {
         "lastModified": 1644229661,
@@ -12,25 +29,6 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "naersk": {
-      "inputs": {
-        "nixpkgs": "nixpkgs"
-      },
-      "locked": {
-        "lastModified": 1647605579,
-        "narHash": "sha256-O5nCXbjlhZ9X3CV/eD/ss9WAvjGTnDlpgXXunuDRBjo=",
-        "owner": "nix-community",
-        "repo": "naersk",
-        "rev": "bd4822e754eba04977667ab8a9e5314ae126cc1c",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "naersk",
-        "rev": "bd4822e754eba04977667ab8a9e5314ae126cc1c",
         "type": "github"
       }
     },
@@ -52,20 +50,6 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1648219316,
-        "narHash": "sha256-Ctij+dOi0ZZIfX5eMhgwugfvB+WZSrvVNAyAuANOsnQ=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "30d3d79b7d3607d56546dd2a6b49e156ba0ec634",
-        "type": "github"
-      },
-      "original": {
-        "id": "nixpkgs",
-        "type": "indirect"
-      }
-    },
-    "nixpkgs_2": {
-      "locked": {
         "lastModified": 1647853765,
         "narHash": "sha256-SAPa3sReFly7/JakB8a0j52l7/UXw0GiLUyTcnxtLdY=",
         "owner": "NixOS",
@@ -81,10 +65,10 @@
     },
     "root": {
       "inputs": {
+        "crate2nix": "crate2nix",
         "flake-utils": "flake-utils",
-        "naersk": "naersk",
         "nixos-unstable": "nixos-unstable",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs"
       }
     }
   },
