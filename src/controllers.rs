@@ -42,7 +42,7 @@ pub async fn insert_url(
                 identifier: Some(i),
             });
 
-            (StatusCode::OK, content)
+            (StatusCode::CREATED, content)
         },
         Err(_e) => {
             let content = views::url::render(RootData {
@@ -60,7 +60,7 @@ pub async fn rpc_insert_url(
     Json(data): Json<CreateUrl>,
 ) -> (StatusCode, Json<Value>) {
     match db_handle.insert_url(data).await {
-        Ok(identifier) => (StatusCode::OK, Json(json!({ "identifier": identifier }))),
+        Ok(identifier) => (StatusCode::CREATED, Json(json!({ "identifier": identifier }))),
         Err(e) => (StatusCode::BAD_REQUEST, Json(json!({ "message": e }))),
     }
 }
