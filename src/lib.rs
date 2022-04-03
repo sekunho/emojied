@@ -24,12 +24,13 @@ pub async fn run(handle: db::Handle) -> Result<(), hyper::Error> {
             "/rpc/shorten-url",
             routing::post(controllers::rpc_insert_url),
         )
-        .route("/app.css", routing::get(controllers::stylesheet))
-        .route("/app.js", routing::get(controllers::js))
-        .route("/purify.min.js", routing::get(controllers::purifyjs))
         .route("/leaderboard", routing::get(controllers::leaderboard))
         .route("/stats/:id", routing::get(controllers::url_stats))
         .route("/:id", routing::get(controllers::fetch_url))
+        .route("/assets/app.css", routing::get(controllers::assets::stylesheet))
+        .route("/assets/app.js", routing::get(controllers::assets::js))
+        .route("/assets/purify.min.js", routing::get(controllers::assets::purifyjs))
+        .route("/assets/icons/:id", routing::get(controllers::assets::favico))
         .layer(Extension(app_handle));
 
     axum::Server::bind(&"127.0.0.1:3000".parse().unwrap())

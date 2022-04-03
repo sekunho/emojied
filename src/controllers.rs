@@ -1,3 +1,5 @@
+pub mod assets;
+
 use axum::extract::{Extension, Form, Path, Query};
 use axum::http::StatusCode;
 use axum::response::Json;
