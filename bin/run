@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo $CA_CERT > ca-certificate.crt
+
+./emojied
