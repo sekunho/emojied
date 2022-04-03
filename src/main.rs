@@ -17,7 +17,7 @@ async fn main() {
         }
 
         Err(e) => {
-            eprintln!("OH NO: {}", e);
+            eprintln!("Database error: {}", e);
             process::exit(1);
         }
     };
