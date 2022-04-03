@@ -5,7 +5,9 @@ use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgPoolOptions, Postgres, Pool};
 use tiny_id::ShortCodeGenerator;
 use unic_char_range::{chars, CharRange};
+
 use crate::emoji;
+use crate::config::AppConfig;
 
 #[derive(Debug, PartialEq)]
 struct DbLink {
@@ -81,12 +83,13 @@ impl Handle {
     /// # Errors
     ///
     /// Will return `Err` if the connection to the database fails.
-    pub async fn new() -> Result<Handle, sqlx::Error> {
+    pub async fn new(config: AppConfig) -> Result<Handle, sqlx::Error> {
         // TODO: Load database URL from `AppConfig`
+
         // Create a connection pool
         let pool = PgPoolOptions::new()
             .max_connections(5)
-            .connect("postgres://postgres@localhost/emojied_db")
+            .connect(&config.database_url)
             .await?;
 
         Ok(Handle { pool })
@@ -105,7 +108,6 @@ impl Handle {
             Some(link) => {
                 let rows = sqlx::query!(
                         "SELECT app.insert_url($1, $2, $3, $4)",
-                        // Not sure why it would panic here (accordin to clippy)
                         &link.identifier,
                         &link.scheme,
                         &link.host,

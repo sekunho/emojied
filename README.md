@@ -23,7 +23,8 @@ WIP
 
 ### Config
 
-- `DATABASE_URL` (required)
+- `APP_HOST` (required, runtime). e.g `emojied.net`
+- `DATABASE_URL` (required, build-time & runtime). e.g `postgres://postgres@localhost/emojied_db`
 
 ## Concepts I have to study in more depth
 
