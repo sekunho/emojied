@@ -32,6 +32,7 @@
             # Back-end
             pkgs.rustc
             pkgs.cargo
+            unstablepkgs.cargo-flamegraph
 
             # Front-end
             unstablepkgs.nodePackages.typescript
