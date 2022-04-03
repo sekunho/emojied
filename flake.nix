@@ -24,6 +24,12 @@
         #     };
         #   };
         # };
+        devShells.ci = pkgs.mkShell rec {
+          buildInputs = [
+            pkgs.sqitchPg
+            pkgs.perl534Packages.TAPParserSourceHandlerpgTAP
+          ];
+        };
 
         devShell = pkgs.mkShell {
           # inherit (self.checks.${system}.pre-commit-check) shellHook;
@@ -49,6 +55,7 @@
             pkgs.clippy
             pkgs.rustfmt
             pkgs.cargo-watch
+            pkgs.flyctl
           ];
         };
       });
