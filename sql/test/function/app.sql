@@ -50,8 +50,7 @@ SELECT throws_ok(
   'duplicate key value violates unique constraint "links_identifier_key"'
 );
 
--- #7
--- TODO
+-- TODO: Test if the values are in the proper columns
 
 --------------------------------------------------------------------------------
 
