@@ -5,7 +5,9 @@ use serde::{Deserialize, Serialize};
 use tokio_postgres::NoTls;
 use tiny_id::ShortCodeGenerator;
 use unic_char_range::{chars, CharRange};
+
 use crate::emoji;
+use crate::config::AppConfig;
 
 pub struct Handle {
     pub client: tokio_postgres::Client,

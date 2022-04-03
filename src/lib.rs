@@ -1,5 +1,5 @@
 mod components;
-mod config;
+pub mod config;
 mod controllers;
 pub mod db;
 mod emoji;

@@ -15,6 +15,17 @@ Shorten your URLs with emojis!
 - View URL clicks (simple stats for now)
 - Do you hate enabling JS? Well, this works completely fine with JS disabled!\*
 
+## Getting Started
+
+### Setup
+
+WIP
+
+### Config
+
+- `APP_HOST` (required, runtime). e.g `emojied.net`
+- `DATABASE_URL` (required, build-time & runtime). e.g `postgres://postgres@localhost/emojied_db`
+
 ## Concepts I have to study in more depth
 
 - Traits: Besides the similarities this shares with Haskell's typeclasses, there
