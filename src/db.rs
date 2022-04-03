@@ -1,4 +1,5 @@
 // TODO: Use a connection pool for the DB
+// TODO: Get rid of `sqlx` for `tokio-postgres` + `deadpool-postgres` + `tokio-pg-mapper`
 
 use hyper::http::Uri;
 use serde::{Deserialize, Serialize};
@@ -82,9 +83,9 @@ pub struct CreateUrl {
 }
 
 impl Handle {
-    pub async fn new() -> Result<Handle, tokio_postgres::Error> {
+    pub async fn new(config: AppConfig) -> Result<Handle, tokio_postgres::Error> {
         let (client, connection) =
-            tokio_postgres::connect("host=localhost user=postgres dbname=emojied_db", NoTls)
+            tokio_postgres::connect(&config.database_url, NoTls)
                 .await?;
 
         tokio::spawn(async move {
