@@ -1,4 +1,5 @@
 // TODO: Use a connection pool for the DB
+// TODO: Get rid of `sqlx` for `tokio-postgres` + `deadpool-postgres` + `tokio-pg-mapper`
 
 use hyper::http::Uri;
 use serde::{Deserialize, Serialize};
