@@ -1,17 +1,20 @@
 // TODO: Use a connection pool for the DB
 // TODO: Get rid of `sqlx` for `tokio-postgres` + `deadpool-postgres` + `tokio-pg-mapper`
+// NOTE: This module should probably just handle client creation, statement caching.
+// TODO: Extract calls to BL to their own modules? Idk.
 
 use hyper::http::Uri;
 use serde::{Deserialize, Serialize};
+use deadpool_postgres::{Pool, Manager, Object};
 use tokio_postgres::NoTls;
 use tiny_id::ShortCodeGenerator;
 use unic_char_range::{chars, CharRange};
 
 use crate::emoji;
-use crate::config::AppConfig;
+use crate::config::Config;
 
 pub struct Handle {
-    pub client: tokio_postgres::Client,
+    pub pool: Pool,
 }
 
 #[derive(Debug, PartialEq)]
@@ -35,7 +38,9 @@ pub enum Error {
     NoRecord,
     DuplicateIdentifier,
     DbPooped,
-    EmptyColumn
+    EmptyColumn,
+    PoolError,
+    FailedToPrepareQuery
 }
 
 impl DbLink {
@@ -83,18 +88,28 @@ pub struct CreateUrl {
 }
 
 impl Handle {
-    pub async fn new(config: AppConfig) -> Result<Handle, tokio_postgres::Error> {
-        let (client, connection) =
-            tokio_postgres::connect(&config.database_url, NoTls)
-                .await?;
+    pub async fn new(app_config: Config) -> Result<Handle, tokio_postgres::Error> {
+        let manager = Manager::from_config(
+            app_config.pg,
+            NoTls,
+            app_config.manager,
+        );
 
-        tokio::spawn(async move {
-            if let Err(e) = connection.await {
-                eprintln!("Error: {}", e);
-            }
-        });
+        // TODO: Remove unwrap()
+        let pool = Pool::builder(manager)
+            .max_size(app_config.pool_size)
+            .build()
+            .unwrap();
 
-        Ok(Handle { client })
+        Ok(Handle { pool })
+    }
+
+    /// Creates a new client in a pool
+    pub async fn client(&self) -> Result<Object, Error> {
+        match self.pool.get().await {
+            Ok(client) => Ok(client),
+            Err(_) => Err(Error::PoolError)
+        }
     }
 
     /// Inserts the URL to be shortened in the DB.
@@ -108,28 +123,30 @@ impl Handle {
     pub async fn insert_url(&self, data: CreateUrl) -> Result<String, Error> {
         match DbLink::new(data) {
             Some(link) => {
-                // TODO: Refactor when tokio-postgres supports casting in func args.
-                // e.g SELECT app.insert_url($1, $2::app.SCHEME, $3, $4, $5)
-                // ^ doesn't work since it doesn't respect `::app.SCHEME`.
-                //
-                // ```
-                // Err(Error { kind: ToSql(1), cause: Some(WrongType { postgres: Other(
-                // Other { name: "scheme", oid: 256012, kind: Enum(["http",
-                // "https"]), schema: "app" }), rust: "str" }) })
-                // ```
-                let rows = self
-                    .client
-                    .query(
-                        "SELECT app.insert_url($1, $2, $3, $4)",
+                let client = self.client().await?;
+
+                let stmt = match client
+                    .prepare_cached("SELECT app.insert_url($1, $2, $3, $4)")
+                    .await {
+                        Ok(stmt) => stmt,
+                        Err(_) => { return Err(Error::FailedToPrepareQuery) },
+                    };
+
+                let row = client
+                    .query_one(
+                        &stmt,
                         &[&link.identifier, &link.scheme, &link.host, &link.path],
                     )
                     .await;
 
-                match rows {
-                    Ok(_) => Ok(link.identifier),
-                    Err(_e) => {
-                        Err(Error::DuplicateIdentifier)
-                    }
+                match row {
+                    Ok(row) => {
+                        match row.try_get(0) {
+                            Ok(url) => Ok(url),
+                            Err(_) => Err(Error::EmptyColumn),
+                        }
+                    },
+                    Err(_e) => Err(Error::DuplicateIdentifier)
                 }
             }
             None => Err(Error::URIParseFailed),
@@ -140,24 +157,36 @@ impl Handle {
     ///
     /// Will return `Err` when it fails to communicate with the DB.
     pub async fn url_stats(&self, identifier: String) -> Result<UrlStat, Error> {
-        let data = self.client
-            .query("SELECT * from app.get_url_stats($1)", &[&identifier])
+        let client = match self.pool.get().await {
+            Ok(client) => client,
+            Err(_e) => { return Err(Error::PoolError); }
+        };
+
+        let stmt = match client
+            .prepare_cached("SELECT * FROM app.get_url_stats($1)")
+            .await {
+                Ok(stmt) => stmt,
+                Err(_e) => { return Err(Error::FailedToPrepareQuery); },
+            };
+
+        let data = client
+            .query_one(&stmt, &[&identifier])
             .await;
 
         match data {
             Ok(data) => {
                 // Dear god this is painful
-                let db_id = match data[0].try_get(0) {
+                let db_id = match data.try_get(0) {
                     Ok(db_id) => db_id,
                     Err(_) => { return Err(Error::EmptyColumn); }
                 };
 
-                let db_clicks = match data[0].try_get(1) {
+                let db_clicks = match data.try_get(1) {
                     Ok(db_clicks) => db_clicks,
                     Err(_) => { return Err(Error::EmptyColumn); }
                 };
 
-                let db_url = match data[0].try_get(2) {
+                let db_url = match data.try_get(2) {
                     Ok(db_url) => db_url,
                     Err(_) => { return Err(Error::EmptyColumn); }
                 };
@@ -178,8 +207,20 @@ impl Handle {
         &self,
         identifier: String
     ) -> Result<String, Error> {
-        let rows = self.client
-            .query("SELECT app.get_url($1)", &[&identifier]).await;
+        let client = match self.pool.get().await {
+            Ok(client) => client,
+            Err(_e) => { return Err(Error::PoolError); },
+        };
+
+        let stmt = match client
+            .prepare_cached("SELECT app.get_url($1)")
+            .await {
+                Ok(stmt) => stmt,
+                Err(_) => { return Err(Error::FailedToPrepareQuery); },
+            };
+
+        let rows = client
+            .query(&stmt, &[&identifier]).await;
 
         match rows {
             Ok(rows) => {
