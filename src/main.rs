@@ -4,14 +4,14 @@ use emojied::db;
 use std::env;
 use std::process;
 
-use emojied::config::AppConfig;
+use emojied::config::Config;
 
 // TODO: Read env vars for config
 
 #[tokio::main]
 async fn main() {
-    let config = AppConfig::new().unwrap_or_else(|err| {
-        eprintln!("AppConfig error: {}", err);
+    let config = Config::from_env().unwrap_or_else(|err| {
+        eprintln!("Application config error: {:?}", err);
         process::exit(1);
     });
 
