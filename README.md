@@ -21,10 +21,17 @@ Shorten your URLs with emojis!
 
 WIP
 
-### Config
+### Environment variables
 
-- `APP_HOST` (required, runtime). e.g `emojied.net`
-- `DATABASE_URL` (required, build-time & runtime). e.g `postgres://postgres@localhost/emojied_db`
+- `APP__HOST` (TODO)
+- `PG__HOST` (required)
+- `PG__DBNAME` (required)
+- `PG__USER` (required)
+- `PG__PASSWORD` (required)
+- `PG__PORT` (required)
+- `PG__POOL_SIZE` (optional, defaults to `22`)
+- `PG__CA_CERT` (optional, defaults to No TLS)
+
 
 ## Concepts I have to study in more depth
 

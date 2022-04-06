@@ -29,6 +29,13 @@ maud = { git = "https://github.com/lambda-fairy/maud", branch = "main", features
 tokio-postgres = "0.7"
 deadpool-postgres = { version = "0.10", features = ["serde"] }
 
+# native-tls
+native-tls = "0.2"
+postgres-native-tls = "0.5"
+
+# Config
+config = "0.13"
+
 rand = "0.8"
 unic-emoji-char = "0.9"
 unic-char-range = "0.9"

@@ -7,9 +7,7 @@
     flake-utils.url = "github:numtide/flake-utils";
     # pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
   };
-
-  outputs = { self, nixpkgs, nixos-unstable, flake-utils }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
+outputs = { self, nixpkgs, nixos-unstable, flake-utils }: flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
       let pkgs = nixpkgs.legacyPackages.${system};
           unstablepkgs = nixos-unstable.legacyPackages.${system};
       in
@@ -46,6 +44,9 @@
             unstablepkgs.nodePackages.tailwindcss
             unstablepkgs.esbuild
 
+            pkgs.openssl
+            pkgs.pkg-config
+
             # Database
             pkgs.sqitchPg
             pkgs.perl534Packages.TAPParserSourceHandlerpgTAP
@@ -57,6 +58,8 @@
             pkgs.cargo-watch
             pkgs.flyctl
           ];
+
+          PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
         };
       });
 }
