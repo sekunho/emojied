@@ -55,6 +55,16 @@ mod tests {
     }
 
     #[test]
+    fn no_dangling_zwj() {
+        assert!(!is_valid("👨‍"))
+    }
+
+    #[test]
+    fn standalone_zwj_should_fail() {
+        assert!(!is_valid("‍"))
+    }
+
+    #[test]
     fn not_an_emoji() {
         assert!(!is_valid("नमस्ते्"));
     }
