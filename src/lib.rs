@@ -3,6 +3,7 @@ pub mod config;
 mod controllers;
 pub mod db;
 mod emoji;
+pub mod url;
 mod views;
 
 use axum::extract::Extension;
@@ -12,10 +13,10 @@ use axum::Router;
 use std::sync::Arc;
 
 pub async fn run(handle: db::Handle) -> Result<(), hyper::Error> {
-    // https://docs.rs/axum/0.4.8/axum/extract/struct.Extension.html
     // TODO: Read about `Arc` because I have no idea what this does.
-    let app_handle = Arc::new(handle);
+    let handle = Arc::new(handle);
 
+    // https://docs.rs/axum/0.4.8/axum/extract/struct.Extension.html
     let app = Router::new()
         .fallback(controllers::not_found.into_service())
         .route("/", routing::get(controllers::root))
@@ -27,10 +28,9 @@ pub async fn run(handle: db::Handle) -> Result<(), hyper::Error> {
         .route("/app.css", routing::get(controllers::stylesheet))
         .route("/app.js", routing::get(controllers::js))
         .route("/purify.min.js", routing::get(controllers::purifyjs))
-        .route("/leaderboard", routing::get(controllers::leaderboard))
         .route("/stats/:id", routing::get(controllers::url_stats))
         .route("/:id", routing::get(controllers::fetch_url))
-        .layer(Extension(app_handle));
+        .layer(Extension(handle));
 
     axum::Server::bind(&"127.0.0.1:3000".parse().unwrap())
         .serve(app.into_make_service())

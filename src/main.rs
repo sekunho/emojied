@@ -8,7 +8,7 @@ use emojied::config::AppConfig;
 #[tokio::main]
 async fn main() {
     let config = AppConfig::from_env().unwrap_or_else(|err| {
-        eprintln!("Application config error: {:?}", err);
+        eprintln!("Application config error: {}", err);
         process::exit(1);
     });
 
