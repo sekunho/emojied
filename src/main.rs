@@ -1,16 +1,13 @@
 #![forbid(unsafe_code)]
 
 use emojied::db;
-use std::env;
 use std::process;
 
-use emojied::config::Config;
-
-// TODO: Read env vars for config
+use emojied::config::AppConfig;
 
 #[tokio::main]
 async fn main() {
-    let config = Config::from_env().unwrap_or_else(|err| {
+    let config = AppConfig::from_env().unwrap_or_else(|err| {
         eprintln!("Application config error: {:?}", err);
         process::exit(1);
     });
@@ -25,7 +22,7 @@ async fn main() {
         }
 
         Err(e) => {
-            eprintln!("Database error: {}", e);
+            eprintln!("Database error: {:#?}", e);
             process::exit(1);
         }
     };

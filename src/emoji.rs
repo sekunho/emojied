@@ -1,3 +1,5 @@
+use tiny_id::ShortCodeGenerator;
+use unic_char_range::{chars, CharRange};
 use unicode_segmentation::UnicodeSegmentation;
 
 // TODO: Check if \u{200D} succeeds a valid emoji
@@ -17,6 +19,23 @@ pub fn is_valid(identifier: &str) -> bool {
                 && (unic_emoji_char::is_emoji(c) || c == '\u{200D}' || c == '\u{FE0F}')
         })
     })
+}
+
+// TODO: Move to `emoji` module
+pub fn new_emoji_id() -> String {
+    // Sorry!
+    // https://github.com/paulgb/tiny_id/blob/e15277384391524e043110bc0f8adadbc6f3c18d/README.md?plain=1#L93-L98=
+    let emojis: Vec<char> = emoji_range().iter().collect();
+
+    let mut gen = ShortCodeGenerator::with_alphabet(emojis, 6);
+
+    gen.next_string()
+}
+
+// TODO: Move to `emoji` module
+pub fn emoji_range() -> CharRange {
+    // https://unicode.org/Public/emoji/14.0/emoji-sequences.txt
+    chars!('\u{1f600}'..='\u{1f64f}')
 }
 
 #[cfg(test)]
