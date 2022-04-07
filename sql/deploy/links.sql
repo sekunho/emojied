@@ -26,7 +26,12 @@ CREATE TABLE app.links (
   path TEXT NOT NULL,
   clicks BIGINT DEFAULT 0,
 
-  UNIQUE(identifier)
+  UNIQUE(identifier),
+  CONSTRAINT id_len_check
+    CHECK (
+      char_length(identifier) > 0
+      AND char_length(identifier) < 40
+    )
 );
 
 COMMENT ON TABLE app.links IS 'Contains the links and their information';
@@ -50,10 +55,10 @@ CREATE FUNCTION app.get_url(query TEXT)
   $$;
 
 CREATE FUNCTION app.insert_url(
-    identifier TEXT, --CHECK length(identifier) > 0,
+    identifier TEXT ,
     scheme     TEXT,
     host       TEXT,
-    path       TEXT -- CHECK length(identifier) > 0
+    path       TEXT
   )
   RETURNS TEXT
   LANGUAGE sql
@@ -89,7 +94,7 @@ CREATE FUNCTION app.get_url_stats(identifier TEXT)
          , concat(links.scheme, '://', hosts.name, links.path) AS url
       FROM app.links
       JOIN app.hosts
-      ON host_id = hosts.host_id
+      ON links.host = hosts.host_id
       WHERE links.identifier = $1;
   $$;
 

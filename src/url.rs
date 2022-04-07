@@ -109,17 +109,11 @@ impl DbLink {
 /// 2) Parsing of the URI fails
 pub async fn insert_url(handle: &db::Handle, data: CreateUrl) -> Result<String, Error> {
     let client = handle.client().await?;
-
-    let stmt = client
-        .prepare_cached("SELECT app.insert_url($1, $2, $3, $4)")
-        .await
-        .map_err(|_| Error::FailedToPrepareQuery)?;
-
     let link = DbLink::new(data)?;
 
     let row = client
         .query_one(
-            &stmt,
+            "SELECT app.insert_url($1, $2, $3, $4)",
             &[&link.identifier, &link.scheme, &link.host, &link.path],
         )
         .await;
@@ -140,18 +134,14 @@ pub async fn insert_url(handle: &db::Handle, data: CreateUrl) -> Result<String, 
 /// Will return `Err` when it fails to communicate with the DB.
 pub async fn url_stats(handle: &db::Handle, identifier: String) -> Result<UrlStat, Error> {
     let client = handle.client().await?;
-
-    let stmt = client
-        .prepare_cached("SELECT * FROM app.get_url_stats($1)")
-        .await
-        .map_err(|_| Error::FailedToPrepareQuery)?;
-
-    let data = client.query_one(&stmt, &[&identifier]).await?;
+    let data = client
+        .query("SELECT * FROM app.get_url_stats($1)", &[&identifier])
+        .await?;
 
     // TODO: Use a data mapper
-    let db_id = data.try_get(0)?;
-    let db_clicks = data.try_get(1)?;
-    let db_url = data.try_get(2)?;
+    let db_id = data[0].try_get(0)?;
+    let db_clicks = data[0].try_get(1)?;
+    let db_url = data[0].try_get(2)?;
 
     Ok(UrlStat {
         identifier: db_id,
@@ -168,15 +158,11 @@ pub async fn url_stats(handle: &db::Handle, identifier: String) -> Result<UrlSta
 /// 2) it runs into a problem in communicating with the DB.
 pub async fn fetch_url(handle: &db::Handle, identifier: String) -> Result<String, Error> {
     let client = handle.client().await?;
+    let row = client
+        .query_one("SELECT app.get_url($1)", &[&identifier])
+        .await?;
 
-    let stmt = client
-        .prepare_cached("SELECT app.get_url($1)")
-        .await
-        .map_err(|_| Error::FailedToPrepareQuery)?;
-
-    let rows = client.query(&stmt, &[&identifier]).await?;
-
-    rows[0].try_get(0).map_err(|e| Error::from(e))
+    row.try_get(0).map_err(|e| Error::from(e))
 }
 
 #[cfg(test)]

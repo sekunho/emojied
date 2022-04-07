@@ -81,7 +81,10 @@ pub async fn url_stats(
 ) -> (StatusCode, Markup) {
     match url::url_stats(&*handle, identifier).await {
         Ok(url_stat) => (StatusCode::OK, views::url::view_stats(&url_stat)),
-        Err(_) => (StatusCode::NOT_FOUND, views::status::not_found()),
+        Err(_e) => {
+            // TODO: Give back 50x when it's a problem with the DB
+            (StatusCode::NOT_FOUND, views::status::not_found())
+        },
     }
 }
 
