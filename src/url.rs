@@ -54,8 +54,12 @@ impl DbLink {
 
         form_data.identifier = if form_data.identifier.is_empty() {
             // TODO: ^ Parse it to a domain type to avoid needless validation Generate for them
-            emoji::random_sequence()
+            let emojis = emoji::random_sequence();
+            println!("Emoji ID not provided. Generated: {}", emojis);
+
+            emojis
         } else if emoji::is_valid(&form_data.identifier) {
+            println!("{} is valid", &form_data.identifier);
             form_data.identifier
         } else {
             return Err(Error::InvalidIdentifier);
@@ -108,9 +112,12 @@ impl DbLink {
 /// 1) The insert fails due to duplicate identifiers
 /// 2) Parsing of the URI fails
 pub async fn insert_url(handle: &db::Handle, data: CreateUrl) -> Result<String, Error> {
+    println!("Attempting to insert: {:#?}", data);
+
     let client = handle.client().await?;
     let link = DbLink::new(data)?;
 
+    println!("Inserting...");
     let row = client
         .query_one(
             "SELECT app.insert_url($1, $2, $3, $4)",
@@ -118,6 +125,7 @@ pub async fn insert_url(handle: &db::Handle, data: CreateUrl) -> Result<String, 
         )
         .await;
 
+    println!("Attempt complete.");
     // TODO: Handle error properly
     match row {
         Ok(row) => match row.try_get(0) {

@@ -77,8 +77,8 @@ with `ldd`:
 
 `emojied` requires you to provide some environment variables, namely the ff:
 
-- `APP__HOST` (TODO)
-- `CA_CERT` (optional): CA certificate's contents
+- `CA_CERT` (optional): CA certificate's contents. This shouldn't contain the
+`BEGIN` and `END` certificate headers. See `bin/run`.
 - `PG__HOST` (required)
 - `PG__DBNAME` (required)
 - `PG__USER` (required)
