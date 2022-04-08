@@ -1,3 +1,15 @@
+FROM ekidd/rust-musl-builder:latest AS builder
+
+WORKDIR /home/rust/src
+
+COPY Cargo.lock Cargo.lock
+COPY Cargo.toml Cargo.toml
+COPY src src
+
+RUN cargo build --release
+
+RUN ls -la target/
+
 FROM alpine:3.14.0 AS assets
 
 ENV TAILWIND_VERSION=3.0.23
@@ -57,7 +69,7 @@ WORKDIR /app
 RUN chown nobody /app
 
 COPY --chown=nobody:root bin/run run
-COPY --chown=nobody:root target/x86_64-unknown-linux-musl/release/emojied emojied
+COPY --from=builder --chown=nobody:root /home/rust/src/target/x86_64-unknown-linux-musl/release/emojied emojied
 COPY --from=assets --chown=nobody:root /app/public public
 
 EXPOSE 3000

@@ -71,6 +71,7 @@ impl Handle {
     ///
     /// You'll need a client to execute queries. Can't use the pool directly.
     pub async fn client(&self) -> Result<Object, Error> {
+        println!("Getting client from pool...");
         self.pool.get().await.map_err(|e| Error::from(e))
     }
 }
