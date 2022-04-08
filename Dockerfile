@@ -56,7 +56,7 @@ WORKDIR /app
 
 RUN chown nobody /app
 
-COPY bin/run run
+COPY --chown=nobody:root bin/run run
 COPY --chown=nobody:root target/x86_64-unknown-linux-musl/release/emojied emojied
 COPY --from=assets --chown=nobody:root /app/public public
 

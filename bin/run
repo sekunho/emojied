@@ -1,5 +1,10 @@
 #!/bin/sh
 
-echo $CA_CERT > ca-certificate.crt
+echo "Dumping CA certificate to /app/ca-certificate.crt"
+echo "-----BEGIN CERTIFICATE-----" > /app/ca-certificate.crt
+echo $CA_CERT >> /app/ca-certificate.crt
+echo "-----END CERTIFICATE-----" >> /app/ca-certificate.crt
+
+echo "Executing emojied"
 
 ./emojied
