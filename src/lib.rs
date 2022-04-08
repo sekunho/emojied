@@ -11,6 +11,7 @@ use axum::handler::Handler;
 use axum::routing;
 use axum::Router;
 use std::sync::Arc;
+use std::net::SocketAddr;
 
 pub async fn run(handle: db::Handle) -> Result<(), hyper::Error> {
     // TODO: Read about `Arc` because I have no idea what this does.
@@ -32,7 +33,9 @@ pub async fn run(handle: db::Handle) -> Result<(), hyper::Error> {
         .route("/:id", routing::get(controllers::fetch_url))
         .layer(Extension(handle));
 
-    axum::Server::bind(&"127.0.0.1:3000".parse().unwrap())
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    tracing::debug!("listening on {}", addr);
+    axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .with_graceful_shutdown(signal_shutdown())
         .await
