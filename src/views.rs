@@ -1,7 +1,7 @@
 pub mod url;
 pub mod status;
 
-use maud::{html, Markup, DOCTYPE, PreEscaped};
+use maud::{html, Markup, DOCTYPE};
 use crate::components::icon;
 
 fn header(title: &str) -> Markup {
@@ -68,10 +68,6 @@ pub fn wrapper(inner_content: &Markup) -> Markup {
             }
 
             (footer())
-
-            script type="application/javascript" {
-                (PreEscaped("let BASE_URL = 'localhost:3000';\nlet SCHEME = 'http';"))
-            }
 
             script src="/app.js" {}
         }
