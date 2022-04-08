@@ -1,4 +1,5 @@
 // TODO: Should probably switch `identifierField` and `id` terms.
+const BASE_URL = `${window.location.protocol}//${window.location.hostname}:${window.location.port}`;
 
 const Api = {
   shortenUrl: async (object: Object) => {
@@ -10,11 +11,7 @@ const Api = {
       body: JSON.stringify(object)
     };
 
-    // Both `SCHEME` and `BASE_URL` have to be set by a `script` tag since
-    // this isn't using Node.JS or Deno, there's no way to set environment
-    // variables. Which is fine in this case since the server configuration
-    // will go through the web server.
-    const res = await fetch(`${SCHEME}://${BASE_URL}/rpc/shorten-url`, opts);
+    const res = await fetch(`${BASE_URL}/rpc/shorten-url`, opts);
 
     if(res.ok) {
       return await res.json();

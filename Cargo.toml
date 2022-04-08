@@ -36,6 +36,8 @@ postgres-native-tls = "0.5"
 # Config
 config = "0.13"
 
+tracing = "0.1"
+
 rand = "0.8"
 unic-emoji-char = "0.9"
 unic-char-range = "0.9"

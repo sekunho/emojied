@@ -34,7 +34,7 @@ pub async fn run(handle: db::Handle) -> Result<(), hyper::Error> {
         .layer(Extension(handle));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    tracing::debug!("listening on {}", addr);
+
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .with_graceful_shutdown(signal_shutdown())
