@@ -10,13 +10,26 @@ use unicode_segmentation::UnicodeSegmentation;
 pub fn is_valid(identifier: &str) -> bool {
     identifier.graphemes(true).into_iter().all(|w| {
         w.chars().all(|c| {
+            // Apparently not in `unic_emoji_chars`.
+            // https://www.compart.com/en/unicode/block/U+1F900
+            let hair_components = chars!('\u{1f9b0}'..='\u{1f9b3}');
+
             // Have to check if it's numeric since there's a bug in the
             // `unic_emoji_char` crate.
             // https://github.com/open-i18n/rust-unic/issues/280
             (!c.is_numeric())
                 // \u{200D} is the zero width joiner
                 // https://www.fileformat.info/info/unicode/char/200d/index.htm
-                && (unic_emoji_char::is_emoji(c) || c == '\u{200D}' || c == '\u{FE0F}')
+                && (
+                    unic_emoji_char::is_emoji(c) ||
+                    unic_emoji_char::is_emoji_component(c) ||
+                    unic_emoji_char::is_emoji_modifier(c) ||
+                    unic_emoji_char::is_emoji_presentation(c) ||
+                    unic_emoji_char::is_emoji_modifier_base(c) ||
+                    c == '\u{200D}' ||
+                    c == '\u{FE0F}' ||
+                    hair_components.iter().any(|hair| hair == c)
+                    )
         })
     })
 }
@@ -72,8 +85,12 @@ mod tests {
 
     #[test]
     fn valid_emoji_range() {
-        assert!(range()
-            .iter()
-            .all(|e| unic_emoji_char::is_emoji(e)))
+        assert!(range().iter().all(|e| unic_emoji_char::is_emoji(e)))
+    }
+
+    #[test]
+    fn never_gonna_give_you_up() {
+        let sample = "❤️👨‍🦰🚫⬆️⬇️👱‍♀️";
+        assert!(is_valid(sample));
     }
 }
