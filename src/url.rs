@@ -65,10 +65,13 @@ impl DbLink {
             return Err(Error::InvalidIdentifier);
         };
 
-        match form_data.url.parse::<Uri>() {
+        // TODO: Would be better to assume that CreateUrl is already lowercased
+        form_data.url = normalize_scheme(form_data.url)?;
+
+        match form_data.url.to_lowercase().parse::<Uri>() {
             Ok(uri) => {
                 let scheme = match uri.scheme_str() {
-                    Some(scheme) => scheme,
+                    Some(scheme) => scheme.to_lowercase(),
                     None => return Err(Error::InvalidURLFormat),
                 };
 
@@ -173,6 +176,26 @@ pub async fn fetch_url(handle: &db::Handle, identifier: String) -> Result<String
     row.try_get(0).map_err(|e| Error::from(e))
 }
 
+/// Normalizes the scheme part of a URI
+fn normalize_scheme(url: String) -> Result<String, Error> {
+    let mut split_url = url.split("://");
+
+    // If it doesn't exist then it's not a valid URL anyway.
+    let scheme = match split_url.next() {
+        Some(scheme) => scheme.to_lowercase(),
+        None => return Err(Error::InvalidURLFormat)
+    };
+
+    let url = split_url
+        .fold(scheme, |mut acc, chunk| {
+            acc.push_str("://");
+            acc.push_str(chunk);
+            acc
+        });
+
+    Ok(url)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -193,5 +216,34 @@ mod tests {
                 path: "".to_string()
             }
         )
+    }
+
+    #[test]
+    fn normalizes_scheme() {
+        let uri = "hTTPs://sekun.dev".to_string();
+
+        assert_eq!(
+            normalize_scheme(uri).unwrap(),
+            "https://sekun.dev".to_string()
+        );
+    }
+
+    #[test]
+    fn ignores_subsequent_scheme_matches() {
+        let uri = "hTTPs://sekun.dev/hTtps://foobar.com".to_string();
+
+        assert_eq!(
+            normalize_scheme(uri).unwrap(),
+            "https://sekun.dev/hTtps://foobar.com"
+        )
+    }
+
+    #[test]
+    fn split_protocol_from_url() {
+        let url = "https://sekun.dev";
+        let split_url: Vec<&str> = url.split("://").collect();
+
+        assert_eq!(split_url[0], "https");
+        assert_eq!(split_url[1], "sekun.dev");
     }
 }
