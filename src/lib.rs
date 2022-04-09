@@ -4,6 +4,7 @@ mod controllers;
 pub mod db;
 mod emoji;
 pub mod url;
+pub mod leaderboard;
 mod views;
 
 use axum::extract::Extension;
@@ -26,6 +27,7 @@ pub async fn run(handle: db::Handle) -> Result<(), hyper::Error> {
             "/rpc/shorten-url",
             routing::post(controllers::rpc_insert_url),
         )
+        .route("/leaderboard", routing::get(controllers::leaderboard))
         .route("/app.css", routing::get(controllers::stylesheet))
         .route("/app.js", routing::get(controllers::js))
         .route("/purify.min.js", routing::get(controllers::purifyjs))
