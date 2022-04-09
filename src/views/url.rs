@@ -3,7 +3,8 @@ use rand::prelude::*;
 
 use crate::components::icon;
 use crate::views::wrapper;
-use crate::url::{self, UrlStat};
+use crate::url;
+use crate::leaderboard;
 
 pub enum CustomUrl {
     HasIdentifier(String),
@@ -147,7 +148,7 @@ fn url_list(identifier: String) -> Markup {
     }
 }
 
-pub fn view_stats(url_stats: &UrlStat) -> Markup {
+pub fn view_stats(url_stats: &leaderboard::Entry) -> Markup {
     let content = html! {
         div class="flex-1 flex flex-col items-center justify-center" {
             div class="flex flex-col justify-center items-center" {

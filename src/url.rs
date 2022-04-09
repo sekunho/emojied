@@ -3,6 +3,7 @@ use serde::Deserialize;
 
 use crate::db;
 use crate::emoji;
+use crate::leaderboard;
 
 #[derive(Debug, PartialEq)]
 struct DbLink {
@@ -10,12 +11,6 @@ struct DbLink {
     scheme: String,
     host: String,
     path: String,
-}
-
-pub struct UrlStat {
-    pub identifier: String,
-    pub url: String,
-    pub clicks: i64,
 }
 
 #[derive(Deserialize, Debug)]
@@ -143,7 +138,10 @@ pub async fn insert_url(handle: &db::Handle, data: CreateUrl) -> Result<String, 
 /// # Errors
 ///
 /// Will return `Err` when it fails to communicate with the DB.
-pub async fn url_stats(handle: &db::Handle, identifier: String) -> Result<UrlStat, Error> {
+pub async fn url_stats(
+    handle: &db::Handle,
+    identifier: String
+) -> Result<leaderboard::Entry, Error> {
     let client = handle.client().await?;
     let data = client
         .query("SELECT * FROM app.get_url_stats($1)", &[&identifier])
@@ -154,7 +152,7 @@ pub async fn url_stats(handle: &db::Handle, identifier: String) -> Result<UrlSta
     let db_clicks = data[0].try_get(1)?;
     let db_url = data[0].try_get(2)?;
 
-    Ok(UrlStat {
+    Ok(leaderboard::Entry {
         identifier: db_id,
         clicks: db_clicks,
         url: db_url,

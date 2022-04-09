@@ -28,13 +28,13 @@ const form = document.querySelector("form");
 
 // Check if it has the custom_url query param
 if (new URL(window.location.href).searchParams.has('custom_url')) {
-  form.insertAdjacentHTML("beforeend", "<div class='w-full sm:w-4/5 mt-2 mx-auto text-su-fg-1 dark:text-su-dark-fg-1'><button id='toggle-custom' type='button' class='font-medium underline'>Autogenerate a custom URL for me</button></div>");
+  form?.insertAdjacentHTML("beforeend", "<div class='w-full sm:w-4/5 mt-2 mx-auto text-su-fg-1 dark:text-su-dark-fg-1'><button id='toggle-custom' type='button' class='font-medium underline'>Autogenerate a custom URL for me</button></div>");
 
 } else {
-  form.insertAdjacentHTML("beforeend", "<div class='w-full sm:w-4/5 mt-2 mx-auto text-su-fg-1 dark:text-su-dark-fg-1'><button id='toggle-custom' type='button' class='font-medium underline'>Custom URL</button></div>");
+  form?.insertAdjacentHTML("beforeend", "<div class='w-full sm:w-4/5 mt-2 mx-auto text-su-fg-1 dark:text-su-dark-fg-1'><button id='toggle-custom' type='button' class='font-medium underline'>Custom URL</button></div>");
 }
 
-form.insertAdjacentHTML("beforeend", `<div class="w-full sm:w-4/5 hidden max-h-80 overflow-y-auto mt-6 divide-y divide-su-bg-2 dark:divide-su-dark-bg-2 shadow-md px-2.5 bg-su-bg-2 dark:bg-black/[0.3] rounded-md border border-su-dark-bg-2 mx-auto"
+form?.insertAdjacentHTML("beforeend", `<div class="w-full sm:w-4/5 hidden max-h-80 overflow-y-auto mt-6 divide-y divide-su-bg-2 dark:divide-su-dark-bg-2 shadow-md px-2.5 bg-su-bg-2 dark:bg-black/[0.3] rounded-md border border-su-dark-bg-2 mx-auto"
                         id="url-list"></div>`);
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -73,8 +73,24 @@ function addUrlEntry(identifier: string) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+let copyButtons = document.getElementsByClassName("copy-button");
+
+if (copyButtons != null) {
+  for (let i = 0; i < copyButtons.length; i++) {
+    let el = copyButtons.item(i);
+
+    el.classList.remove("hidden");
+    el.addEventListener("click", () => {
+      let html_el = el as HTMLElement;
+      navigator.clipboard.writeText(html_el.dataset.shortUrl);
+    })
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Event listeners
-form.addEventListener("submit", (e: SubmitEvent) => {
+form?.addEventListener("submit", (e: SubmitEvent) => {
   e.preventDefault();
 
   let object = {};
@@ -97,7 +113,7 @@ scenarios:
   });
 });
 
-toggleCustomUrl.addEventListener("click", () => {
+toggleCustomUrl?.addEventListener("click", () => {
   // Toggle the identifier field
   let identifierField = document.getElementById("identifier-field");
   identifierField.classList.toggle("hidden");

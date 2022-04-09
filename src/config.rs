@@ -69,7 +69,13 @@ impl AppConfig {
         let host = env::var("PG__HOST")?;
         let user = env::var("PG__USER")?;
         let dbname = env::var("PG__DBNAME")?;
-        let dbpassword = env::var("PG__PASSWORD")?;
+
+        match env::var("PG__PASSWORD") {
+            Ok(dbpassword) => {
+                pg_config.password(&dbpassword);
+            },
+            Err(_) => (),
+        }
 
         let port = match env::var("PG__PORT") {
             Ok(port) => port.parse::<u16>()?,
@@ -83,9 +89,11 @@ impl AppConfig {
 
         // Not providing CA_CERT is fine
         let ca_cert_path = match env::var("PG__CA_CERT") {
-            Ok(path) => Some(path),
-            Err(_e) => {
+            Ok(path) => {
                 pg_config.ssl_mode(SslMode::Require);
+                Some(path)
+            },
+            Err(_e) => {
                 None
             }
         };
@@ -93,7 +101,6 @@ impl AppConfig {
         pg_config
             .application_name("emojied")
             .host(&host)
-            .password(&dbpassword)
             .user(&user)
             .dbname(&dbname)
             .port(port);
