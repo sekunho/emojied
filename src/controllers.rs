@@ -111,7 +111,6 @@ pub async fn fetch_url(
 pub async fn leaderboard(Extension(handle): Extension<Arc<db::Handle>>) -> (StatusCode, Markup) {
     match leaderboard::fetch(&*handle).await {
         Ok(entries) => {
-            println!("Entries: {:#?}", entries);
             (StatusCode::OK, views::leaderboard::render(entries))
         },
         Err(_e) => (StatusCode::INTERNAL_SERVER_ERROR, maud::html! {}),
