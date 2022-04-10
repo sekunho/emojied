@@ -13,6 +13,7 @@ Shorten your URLs with emojis!
   as it's not taken!
 - Not sure what emoji to use? `emojied` autogenerates one for you.
 - View URL clicks (simple stats for now)
+- Leaderboard - See the top 20 most clicked links!
 - Do you hate enabling JS? Well, this works completely fine with JS disabled!\*
 
 ## Getting Started
