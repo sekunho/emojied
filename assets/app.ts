@@ -1,5 +1,14 @@
 // TODO: Should probably switch `identifierField` and `id` terms.
-const BASE_URL = `${window.location.protocol}//${window.location.hostname}:${window.location.port}`;
+
+console.log(window.location.port);
+
+let BASE_URL;
+
+if (window.location.port == "") {
+  BASE_URL = `${window.location.protocol}//${window.location.hostname}`;
+} else {
+  BASE_URL = `${window.location.protocol}//${window.location.hostname}:${window.location.port}`;
+}
 
 const Api = {
   shortenUrl: async (object: Object) => {
