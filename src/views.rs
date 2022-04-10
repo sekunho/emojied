@@ -48,15 +48,15 @@ fn footer() -> Markup {
                         "Donate"
                     }
 
-                    a target="blank" href="https://twitter.com/sekunho_" {
+                    a target="_blank" href="https://twitter.com/sekunho_" {
                         (icon::twitter())
                     }
 
-                    a target="blank" href="https://youtube.com/sekunho" {
+                    a target="_blank" href="https://youtube.com/sekunho" {
                         (icon::youtube())
                     }
 
-                    a target="blank" href="https://github.com/sekunho/emojied" {
+                    a target="_blank" href="https://github.com/sekunho/emojied" {
                         (icon::github())
                     }
                 }
