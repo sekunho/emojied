@@ -43,7 +43,7 @@ pub fn render(entries: Vec<leaderboard::Entry>) -> Markup {
                             class="copy-button hidden"
                             title="Copy to clipboard"
                             type="button"
-                            data-short-url = (format!("https://emojied.net/{}", entry.identifier)) {
+                            data-id = (entry.identifier) {
                             (icon::copy())
                         }
 
