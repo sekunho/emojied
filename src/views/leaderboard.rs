@@ -2,6 +2,7 @@ use maud::{html, Markup};
 use crate::leaderboard;
 use crate::views::wrapper;
 use crate::components::icon;
+use crate::views::url;
 
 pub fn render(entries: Vec<leaderboard::Entry>) -> Markup {
     let content = html! {
@@ -50,6 +51,12 @@ pub fn render(entries: Vec<leaderboard::Entry>) -> Markup {
                         a target="_blank" href=(format!("/stats/{}", entry.identifier)) title="View stats" {
                             (icon::chart_bar())
                         }
+
+                        a target="_blank" href=(url::create_mailto(entry.identifier.clone())) title="Report this URL as malicious" {
+                            (icon::shield_exclamation())
+                        }
+
+
                     }
                 }
             }

@@ -176,15 +176,30 @@ pub fn view_stats(url_stats: &leaderboard::Entry) -> Markup {
                 }
             }
 
-            h2 class="text-xl text-su-fg-1/[0.8] dark:text-su-dark-fg-1/[0.8]" {
+            h2 class="text-xl text-su-fg-1/[0.8] text-center dark:text-su-dark-fg-1/[0.8]" {
                 a href=(url_stats.url) target="_blank" {
                     (url_stats.url)
+                }
+            }
+
+            a target="_blank" class="flex space-x-2 mt-6 text-su-fg-1 dark:text-su-dark-fg-1 underline" href=(create_mailto(url_stats.identifier.clone())) {
+                (icon::shield_exclamation())
+                span {
+                    ("Report this URL as malicious")
                 }
             }
         }
     };
 
     wrapper(&content)
+}
+
+pub fn create_mailto(identifier: String) -> String {
+    format!(
+        "mailto:report@emojied.net?subject=Malicious%20Url&body=I would like to report \
+        https://emojied.net/{} as malicious because ",
+        identifier
+    )
 }
 
 fn heading() -> Markup {

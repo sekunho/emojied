@@ -41,11 +41,18 @@ fn footer() -> Markup {
                     }
 
                     a href="/leaderboard" {
-                        "Leaderboard"
+                        "Rank"
                     }
 
                     a target="_blank" href="https://ko-fi.com/sekun" {
                         "Donate"
+                    }
+
+                    a
+                        target="_blank"
+                        href="mailto:report@emojied.net?subject=Malicious%20Url"
+                        title="Report a malicious URL" {
+                        ("Report")
                     }
 
                     a target="_blank" href="https://twitter.com/sekunho_" {
