@@ -27,6 +27,10 @@ pub enum Error {
     EmptyColumn,
     DuplicateIdentifier,
     InvalidURLFormat,
+    MissingScheme,
+    UnsupportedScheme,
+    MissingHost,
+    MissingPath,
     InvalidIdentifier,
 }
 
@@ -67,16 +71,16 @@ impl DbLink {
             Ok(uri) => {
                 let scheme = match uri.scheme_str() {
                     Some(scheme) => scheme.to_lowercase(),
-                    None => return Err(Error::InvalidURLFormat),
+                    None => return Err(Error::MissingScheme),
                 };
 
                 if !scheme.eq("http") && !scheme.eq("https") {
-                    return Err(Error::InvalidURLFormat);
+                    return Err(Error::UnsupportedScheme);
                 }
 
                 let host = match uri.host() {
                     Some(host) => host,
-                    None => return Err(Error::InvalidURLFormat),
+                    None => return Err(Error::MissingHost),
                 };
 
                 let path = form_data
@@ -85,7 +89,7 @@ impl DbLink {
 
                 let path = match path {
                     Some(path) => path,
-                    None => return Err(Error::InvalidURLFormat),
+                    None => return Err(Error::MissingPath),
                 };
 
                 Ok(DbLink {

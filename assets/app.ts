@@ -19,11 +19,12 @@ const Api = {
     };
 
     const res = await fetch(`${BASE_URL}/rpc/shorten-url`, opts);
+    const json = await res.json();
 
     if(res.ok) {
-      return await res.json();
+      return json;
     } else {
-      throw new Error(`${res.status}`);
+      throw new Error(`[${json.type}] ${json.message}`);
     }
   }
 };
@@ -116,14 +117,8 @@ form?.addEventListener("submit", (e: SubmitEvent) => {
     }
 
     addUrlEntry(data.identifier);
-  }).catch(_e => {
-    alert(`I ran into a problem!\n
-Alright, listen, I barely spent any time with error handling. Two possible
-scenarios:
-
-1. Not a valid URL
-2. You're not using emojis
-`)
+  }).catch(e => {
+    alert(`I ran into a problem!\n\n${e}`)
   });
 });
 
