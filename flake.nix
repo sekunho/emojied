@@ -24,9 +24,18 @@ outputs = { self, nixpkgs, nixos-unstable, flake-utils }: flake-utils.lib.eachSy
         # };
         devShells.ci = pkgs.mkShell rec {
           buildInputs = [
-            pkgs.sqitchPg
-            pkgs.perl534Packages.TAPParserSourceHandlerpgTAP
+            pkgs.rustc
+            pkgs.cargo
+            pkgs.openssl
+            pkgs.pkg-config
+
+            unstablepkgs.nodePackages.typescript
+            unstablepkgs.nodePackages.typescript-language-server
+            unstablepkgs.nodePackages.tailwindcss
+            unstablepkgs.esbuild
           ];
+
+          PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
         };
 
         devShell = pkgs.mkShell {
