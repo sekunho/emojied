@@ -1,8 +1,6 @@
 // TODO: Should probably switch `identifierField` and `id` terms.
 
-console.log(window.location.port);
-
-let BASE_URL;
+let BASE_URL: string;
 
 if (window.location.port == "") {
   BASE_URL = `${window.location.protocol}//${window.location.hostname}`;
@@ -54,16 +52,16 @@ function addUrlEntry(identifier: string) {
   // DOMPurify needs `purify.min.js` before this script gets loaded in the
   // browser.
   const cleanIdentifier = DOMPurify.sanitize(identifier);
-  const div = `
-  <div class="py-2 flex justify-between text-su-fg-1 dark:text-su-dark-fg-1">
+  const div = document.createElement('div');
+  div.classList.add("py-2", "flex", "justify-between", "text-su-fg-1", "dark:text-su-dark-fg-1");
+
+  const content = `
     <a href="/${cleanIdentifier}">
       emojied.net/${cleanIdentifier}
     </a>
 
     <div class="flex space-x-2.5 text-sm">
-      <button
-        type="button"
-        onclick="copyToClipboard('${cleanIdentifier}')">
+      <button type="button">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
         </svg>
@@ -75,18 +73,19 @@ function addUrlEntry(identifier: string) {
         </svg>
       </a>
     </div>
-  </div>
-  `
+  `;
 
-  urlList.insertAdjacentHTML("beforeend", div);
+  div.innerHTML = content;
+
+  div.addEventListener("click", () => {
+    navigator.clipboard.writeText(`${BASE_URL}/${cleanIdentifier}`);
+    alert("Copied to clipboard");
+  });
+
+  urlList.prepend(div);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
-function copyToClipboard(identifier: string) {
-  alert("Copied to clipboard");
-  navigator.clipboard.writeText(`${BASE_URL}/${identifier}`);
-}
 
 let copyButtons = document.getElementsByClassName("copy-button");
 
