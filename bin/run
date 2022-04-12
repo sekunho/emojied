@@ -7,4 +7,4 @@ echo "-----END CERTIFICATE-----" >> /app/ca-certificate.crt
 
 echo "Executing emojied"
 
-./emojied
+emojied

@@ -12,7 +12,7 @@ edition = "2021"
 
 [dependencies]
 # Web framework
-axum = "0.4"
+axum = "0.5"
 
 # HTTP library
 hyper = { version = "0.14", features = ["full"] }
@@ -28,7 +28,7 @@ tower = "0.4"
 # Serialize/deserialize stuff
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
-maud = { git = "https://github.com/lambda-fairy/maud", branch = "main", features = ["axum"] }
+maud = { git = "https://github.com/sekunho/maud", branch = "main", features = ["axum"] }
 
 # Database
 tokio-postgres = "0.7"
@@ -37,9 +37,6 @@ deadpool-postgres = { version = "0.10", features = ["serde"] }
 # native-tls
 native-tls = "0.2"
 postgres-native-tls = "0.5"
-
-# Config
-config = "0.13"
 
 tracing = "0.1"
 

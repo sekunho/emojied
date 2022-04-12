@@ -1,7 +1,8 @@
 use deadpool_postgres::{ManagerConfig, RecyclingMethod};
-use std::{env, error, fmt, num};
+use std::{env, error, fmt, num, path::PathBuf};
 use tokio_postgres::config::SslMode;
 
+#[derive(Clone)]
 pub struct AppConfig {
     /// Application host
     pub host: String,
@@ -12,12 +13,14 @@ pub struct AppConfig {
     /// Pool size
     pub pool_size: usize,
     pub ca_cert_path: Option<String>,
+    pub static_assets_path: PathBuf,
 }
 
 #[derive(Debug)]
 pub enum Error {
     VarError(env::VarError),
     InvalidVarFormat(num::ParseIntError),
+    MissingStaticAssetsPath,
 }
 
 impl fmt::Display for Error {
@@ -33,9 +36,14 @@ impl fmt::Display for Error {
                         "An environment variable is expected to be unicode, but isn't"
                     )
                 }
-            },
+            }
+
             Error::InvalidVarFormat(error) => {
                 write!(f, "{}: Unable to parse value to integer", error)
+            }
+
+            Error::MissingStaticAssetsPath => {
+                write!(f, "Missing environment variable: `APP__STATIC_ASSETS=<PATH_TO_FILES>`")
             }
         }
     }
@@ -61,6 +69,12 @@ impl From<num::ParseIntError> for Error {
 
 impl AppConfig {
     pub fn from_env() -> Result<AppConfig, Error> {
+        let static_assets_path = env::var("APP__STATIC_ASSETS")
+            .map_err(|_| Error::MissingStaticAssetsPath)?;
+        let static_assets_path = PathBuf::from(static_assets_path);
+
+        println!("Static assets: {:?}", static_assets_path);
+
         let mut pg_config = tokio_postgres::Config::new();
         let manager_config = ManagerConfig {
             recycling_method: RecyclingMethod::Fast,
@@ -111,6 +125,7 @@ impl AppConfig {
             manager: manager_config,
             pool_size,
             ca_cert_path,
+            static_assets_path,
         })
     }
 }

@@ -11,12 +11,14 @@ use axum::extract::Extension;
 use axum::handler::Handler;
 use axum::routing;
 use axum::Router;
+use config::AppConfig;
 use std::sync::Arc;
 use std::net::SocketAddr;
 
-pub async fn run(handle: db::Handle) -> Result<(), hyper::Error> {
+pub async fn run(config: AppConfig, handle: db::Handle) -> Result<(), hyper::Error> {
     // TODO: Read about `Arc` because I have no idea what this does.
     let handle = Arc::new(handle);
+    let config = Arc::new(config);
 
     // https://docs.rs/axum/0.4.8/axum/extract/struct.Extension.html
     let app = Router::new()
@@ -33,7 +35,8 @@ pub async fn run(handle: db::Handle) -> Result<(), hyper::Error> {
         .route("/purify.min.js", routing::get(controllers::purifyjs))
         .route("/stats/:id", routing::get(controllers::url_stats))
         .route("/:id", routing::get(controllers::fetch_url))
-        .layer(Extension(handle));
+        .layer(Extension(handle))
+        .layer(Extension(config));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
 
