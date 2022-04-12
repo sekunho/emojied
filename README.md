@@ -1,5 +1,7 @@
 # emojied
 
+![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/hsekun/emojied)
+
 <p align="center">
   <img src="emojied.png" />
 </p>
