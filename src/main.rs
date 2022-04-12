@@ -14,11 +14,11 @@ async fn main() {
     });
 
     println!("Attempting to establish a database connection");
-    match db::Handle::new(config).await {
+    match db::Handle::new(config.clone()).await {
         Ok(db_handle) => {
             eprintln!("Database connection established");
             // https://docs.rs/axum/0.4.8/axum/extract/struct.Extension.html
-            if let Err(e) = emojied::run(db_handle).await {
+            if let Err(e) = emojied::run(config, db_handle).await {
                 eprintln!("Application error: {}", e);
                 process::exit(1);
             }
