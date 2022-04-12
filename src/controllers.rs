@@ -110,9 +110,7 @@ pub async fn fetch_url(
 
 pub async fn leaderboard(Extension(handle): Extension<Arc<db::Handle>>) -> (StatusCode, Markup) {
     match leaderboard::fetch(&*handle).await {
-        Ok(entries) => {
-            (StatusCode::OK, views::leaderboard::render(entries))
-        },
+        Ok(entries) => (StatusCode::OK, views::leaderboard::render(entries)),
         Err(_e) => (StatusCode::INTERNAL_SERVER_ERROR, maud::html! {}),
     }
 }
@@ -182,31 +180,63 @@ fn parse_url_error(e: url::Error) -> (StatusCode, Json<Value>) {
     match e {
         url::Error::DbConnectionFailed(_) => (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({ "message": internal_error_msg })),
+            Json(json!({ "message": internal_error_msg, "type": "E001" })),
         ),
         url::Error::DbCommunicationFailed => (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({ "message": internal_error_msg })),
+            Json(json!({ "message": internal_error_msg, "type": "E002" })),
         ),
         url::Error::FailedToPrepareQuery => (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({ "message": internal_error_msg })),
+            Json(json!({ "message": internal_error_msg, "type": "E003" })),
         ),
         url::Error::EmptyColumn => (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({ "message": internal_error_msg })),
+            Json(json!({ "message": internal_error_msg, "type": "E004" })),
         ),
         url::Error::DuplicateIdentifier => (
             StatusCode::BAD_REQUEST,
-            Json(json!({"message": "This emoji ID is taken. Use another one!"})),
-        ),
-        url::Error::InvalidURLFormat => (
-            StatusCode::BAD_REQUEST,
-            Json(json!({"message": "This is not a valid URL format."})),
+            Json(json!({"message": "This emoji ID is taken. Use another one!", "type": "E005"})),
         ),
         url::Error::InvalidIdentifier => (
             StatusCode::BAD_REQUEST,
-            Json(json!({"message": "The ID has to be emojis. Only emojis."})),
+            Json(json!({"message": "The ID has to be emojis. Only emojis.", "type": "E006"})),
+        ),
+        url::Error::InvalidURLFormat => (
+            StatusCode::BAD_REQUEST,
+            Json(
+                json!({"message": "This is not a valid URL format. e.g https://example.com", "type": "E007"}),
+            ),
+        ),
+        url::Error::MissingScheme => (
+            StatusCode::BAD_REQUEST,
+            Json(
+                json!({
+                    "message": "URL must have a scheme. Valid schemes are: https, or http.\ne.g https://example.com",
+                    "type": "E008"
+                }),
+            ),
+        ),
+        url::Error::UnsupportedScheme => (
+            StatusCode::BAD_REQUEST,
+            Json(
+                json!({
+                    "message": "Unsupported scheme. Acceptable schemes are: https, or http.\ne.g https://example.com",
+                    "type": "E009"
+                }),
+            ),
+        ),
+        url::Error::MissingHost => (
+            StatusCode::BAD_REQUEST,
+            Json(
+                json!({"message": "URL host does not exist, or is invalid.", "type": "E010"}),
+            ),
+        ),
+        url::Error::MissingPath => (
+            StatusCode::BAD_REQUEST,
+            Json(
+                json!({"message": "URL path does not exist, or is invalid.", "type": "E011"}),
+            ),
         ),
     }
 }
