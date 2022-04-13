@@ -20,68 +20,28 @@ Shorten your URLs with emojis!
 
 ## Getting Started
 
-### Processing static assets
+### Build from source
 
-Since this is a website, you'll need to deal with the static assets. Fortunately,
-it's not that complicated. You just need two things: `esbuild`, and
-`tailwindcss`'s CLI. Both of which are available in `nixpkgs`, but if you're a
-download-my-own-binary kind of person, then you can use the ff URLs:
+You can build the binary, and static assets with `nix`. You can also build it
+some other way if you prefer, but I'm not gonna bother with that.
 
-  * https://github.com/tailwindlabs/tailwindcss/releases/download/v3.0.23/tailwindcss-linux-x64
-  * https://registry.npmjs.org/esbuild-linux-64/-/esbuild-linux-64-0.14.27.tgz
+Options:
 
-Then simply just run the ff:
+1. `nix build`: Builds `emojied`'s static binary + static assets, and provides
+an `APP__STATIC_ASSETS` environment variable. This is the "wrapped" version.
+2. `nix build .#emojied-unwrapped`: Like above, but doesn't provide the env
+variable.
 
-```sh
-tailwindcss \
-  --input assets/app.css \
-  --output public/app.css \
-  --config assets/tailwind.config.js \
-  --minify
+In both, everything is already taken care of. \#1 is more suitable for distributing
+it as an application, while \#2 makes more sense when you want to simply copy
+the output to a VPS.
 
-esbuild assets/app.ts \
-  --outfile=public/app.js \
-  --minify
-```
-
-This will create a stylesheet, and JS file in `public/` respectively.
-
-### Building a static binary
-
-There were some problems when trying to build one through `nix` so it'll be
-built with Docker for now using `ekidd/rust-musl-builder`.
-
-#### Fish
-
-```fish
-docker run \
-  --rm -it \
-  -v (pwd):/home/rust/src ekidd/rust-musl-builder \
-  cargo build --release
-```
-
-#### Bash
-
-```bash
-docker run \
-  --rm -it \
-  -v "$(pwd)":/home/rust/src ekidd/rust-musl-builder \
-  cargo build --release
-```
-
-This creates a Linux static binary, which can be found in
-`./target/x86_64-unknown-linux-musl/release/emojied`. Check if it has any dylibs
-with `ldd`:
-
-```sh
-> ldd target/x86_64-unknown-linux-musl/release/emojied
-        not a dynamic executable
-```
+### Environment variables
 
 `emojied` requires you to provide some environment variables, namely the ff:
 
-- `CA_CERT` (optional): CA certificate's contents. This shouldn't contain the
-`BEGIN` and `END` certificate headers. See `bin/run`.
+- `APP_STATIC_ASSETS` (required, path that directly contains `app.css`, etc.):
+Path of `public/`
 - `PG__HOST` (required)
 - `PG__DBNAME` (required)
 - `PG__USER` (required)
@@ -89,28 +49,24 @@ with `ldd`:
 - `PG__PORT` (required)
 - `PG__POOL_SIZE` (optional, defaults to `22`)
 - `PG__CA_CERT` (optional, defaults to No TLS): CA certificate's file path
+- `CA_CERT` (optional): CA certificate's contents. This shouldn't contain the
+`BEGIN` and `END` certificate headers. See `bin/run`.
 
-These aren't required to be present during build-time, only during runtime.
+### Build a `Docker` image
 
-### CA certificate
+If ever you need a Docker image with `emojied`, then you'll need `nix` (flakes)
+to build it.
 
-DBaaS like DO's managed DB requires you to connect to the DB via TLS, and are
-required to use the CA certificate they provide.
+```sh
+# Build the Docker image tar
+nix build .#emojied-docker
 
-You have to do two things:
+# Load result to Docker
+docker load < result
+```
 
-1. Provide the CA certificate's file path with the `PG__CA_CERT` environment
-variable; and
-2. Dump the CA certificate's contents to that location you just specified.
-
-### Using `Docker`
-
-I wrote a `Dockerfile` that does all that if ever you don't want to. It pretty
-much handles all of the above. Wrt the CA cert, you still have to provide the
-`CA_CERT`, and `PG__CA_CERT` env variable. Although the latter will have to be
-in `/app/ca-certificate.crt`.
-
-While at the project's root, you can build the image with `docker build -t .`.
+From this, you get a Docker image `emojied-docker:latest`! If you want an example,
+you can check out the `.github/workflows/main.yml`.
 
 ## Concepts I have to study in more depth
 
