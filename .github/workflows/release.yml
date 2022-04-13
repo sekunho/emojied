@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    paths:
+      - '.github/workflows/release.yml'
+      - 'flake.*'
+      - 'Cargo.*'
+      - 'assets/**/*'
+      - 'src/**/*'
+      - 'public/purify.min.js'
+    tags:
+      - '*'
+
+jobs:
+  create-release:
+    name: Create GitHub release
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            /nix/store/
+          key: ${{ runner.os }}-${{ hashFiles('flake.lock')}}-${{ hashFiles('Cargo.lock')}}
+
+      - name: Setup Nix
+        uses: cachix/install-nix-action@v15
+        with:
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build release
+        run: nix build .#emojied-unwrapped
+
+      - name: Install zip
+        run: sudo apt install zip
+
+      - name: Zip release
+        run: |
+          cd result/bin
+          sudo zip emojied.zip emojied public/*
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            result/bin/emojied.zip

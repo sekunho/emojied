@@ -146,6 +146,7 @@ outputs = { self, nixpkgs, nixos-unstable, utils, naersk }: utils.lib.eachSystem
             pkgs.rustfmt
             pkgs.cargo-watch
             pkgs.flyctl
+            pkgs.zip
           ];
 
           PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
