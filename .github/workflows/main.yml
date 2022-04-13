@@ -1,14 +1,23 @@
-name: CI/CD
+name: Docker Image
 
 on:
   push:
+    paths:
+      - '.github/workflows/main.yml'
+      - 'flake.*'
+      - 'Cargo.*'
+      - 'assets/**/*'
+      - 'src/**/*'
+      - 'public/purify.min.js'
+
     branches:
       - main
 
 jobs:
   deploy:
-    name: Build release and deploy
+    name: Build & push image
     runs-on: ubuntu-20.04
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout repo
@@ -23,6 +32,13 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            /nix/store/
+          key: ${{ runner.os }}-${{ hashFiles('flake.lock')}}-${{ hashFiles('Cargo.lock')}}
+
       - name: Build image
         run: |
           nix build .#emojied-docker
@@ -33,3 +49,5 @@ jobs:
 
       - name: Push image
         run: docker push hsekun/emojied:latest
+
+
