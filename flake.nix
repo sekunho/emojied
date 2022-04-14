@@ -81,7 +81,7 @@ outputs = { self, nixpkgs, nixos-unstable, utils, naersk }: utils.lib.eachSystem
           emojied-docker = pkgs.dockerTools.buildImage {
             name = "emojied-docker";
             tag = "latest";
-            contents = [ pkgs.coreutils packages.emojied pkgs.bash ];
+            contents = [ pkgs.bash ];
 
             config = {
               Cmd = [ "${packages.emojied}/bin/run" ];
@@ -101,7 +101,6 @@ outputs = { self, nixpkgs, nixos-unstable, utils, naersk }: utils.lib.eachSystem
         apps.emojied = utils.lib.mkApp {
           drv = packages.emojied;
         };
-
 
         defaultApp = apps.emojied;
 
