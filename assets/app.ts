@@ -116,6 +116,11 @@ form?.addEventListener("submit", (e: SubmitEvent) => {
       urlList.classList.remove("hidden");
     }
 
+    let urlField = document.getElementById("url") as HTMLInputElement;
+
+    form.reset();
+    urlField.focus();
+
     addUrlEntry(data.identifier);
   }).catch(e => {
     alert(`I ran into a problem!\n\n${e}`)
