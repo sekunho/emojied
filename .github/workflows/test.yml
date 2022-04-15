@@ -1,0 +1,31 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/test.yml'
+      - 'flake.*'
+      - 'nix/*'
+      - 'Cargo.*'
+      - 'assets/**/*'
+      - 'src/**/*'
+      - 'public/purify.min.js'
+
+jobs:
+  test:
+    name: Build & test
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup Nix
+        uses: cachix/install-nix-action@v15
+
+      - name: Build & test
+        run: |
+          nix build .#emojied-docker
+          docker load < result
+
