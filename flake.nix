@@ -74,7 +74,6 @@
 
         # https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix
         emojied-docker = buildDockerImage "latest";
-        emojied-docker-0-1-1-dev = buildDockerImage "0.1.1-dev";
 
         default = self.packages.${platform}.emojied;
       };
