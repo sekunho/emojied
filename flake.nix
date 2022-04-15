@@ -1,154 +1,101 @@
 {
+  # Min nix version: 2.7.0
   description = "A URL shortener, except emojis";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
     nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    utils.url = "github:numtide/flake-utils";
     naersk.url = "github:nix-community/naersk";
     # pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
   };
-outputs = { self, nixpkgs, nixos-unstable, utils, naersk }: utils.lib.eachSystem [ "x86_64-linux" ] (system:
-      let pkgs = nixpkgs.legacyPackages.${system};
-          unstablepkgs = nixos-unstable.legacyPackages.${system};
-          naersk-lib = naersk.lib."${system}".override {
-            cargo = pkgs.cargo;
-            rustc = pkgs.rustc;
-          };
 
-          emojied = (naersk-lib.buildPackage {
-            pname = "emojied";
-            root = ./.;
-            gitSubmodules = true;
-            nativeBuildInputs = with pkgs; [ ];
-            buildInputs = with pkgs; [ openssl pkg-config ];
-          }).overrideAttrs (old: {
-            nativeBuildInputs = old.nativeBuildInputs ++ [
-              unstablepkgs.nodePackages.typescript
-              unstablepkgs.nodePackages.tailwindcss
-              unstablepkgs.esbuild
-            ];
+  outputs = { self, nixpkgs, nixos-unstable, naersk }: (
+    let platform = "x86_64-linux";
+        pkgs = nixpkgs.legacyPackages.${platform};
+        unstablepkgs = nixos-unstable.legacyPackages.${platform};
 
-            buildInputs = old.buildInputs;
+        naersk-lib = naersk.lib.${platform}.override {
+          cargo = pkgs.cargo;
+          rustc = pkgs.rustc;
+        };
 
-            buildPhase = old.buildPhase + ''
-              tailwindcss \
-                --input assets/app.css \
-                --config assets/tailwind.config.js \
-                --output public/app.css \
-                --minify
+        shell = import ./nix/shell.nix {
+          inherit pkgs;
+          inherit unstablepkgs;
+        };
 
-              esbuild \
-                assets/app.ts \
-                --outdir=public/ \
-                --minify
-            '';
+        emojied = import ./nix/emojied.nix {
+          inherit pkgs;
+          inherit unstablepkgs;
+          inherit naersk-lib;
+        };
 
-            installPhase = old.installPhase + ''
-              mv bin/run $out/bin/run
-              mv public $out/bin
-            '';
-          });
-      in rec
-      {
-        # checks = {
-        #   pre-commit-check = pre-commit-hooks.lib.${system}.run {
-        #     src = ./.;
-        #     hooks = {
-        #       cargo-check.enable = true;
-        #       clippy.enable = true;
-        #       rustfmt.enable = true;
-        #     };
-        #   };
-        # };
+        buildDockerImage = tag: pkgs.dockerTools.buildImage {
+          name = "emojied-docker";
+          tag = tag;
+          contents = [ pkgs.bash ];
 
-        packages = {
-          emojied-unwrapped = emojied;
+          config = {
+            Cmd = [ "${self.packages.x86_64-linux.emojied}/bin/run" ];
+            WorkingDir = "/app";
+            Env = [ "PATH=${pkgs.coreutils}/bin/:${self.packages.${platform}.emojied}/bin" ];
 
-          emojied = pkgs.symlinkJoin {
-            name = "emojied";
-            paths = [ emojied ];
-            buildInputs = [ pkgs.makeWrapper ];
-
-            # https://gist.github.com/CMCDragonkai/9b65cbb1989913555c203f4fa9c23374
-            postBuild = ''
-              wrapProgram $out/bin/emojied \
-                --set APP__STATIC_ASSETS "${emojied}/bin/public"
-            '';
-          };
-
-          # https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix
-          emojied-docker = pkgs.dockerTools.buildImage {
-            name = "emojied-docker";
-            tag = "latest";
-            contents = [ pkgs.bash ];
-
-            config = {
-              Cmd = [ "${packages.emojied}/bin/run" ];
-              WorkingDir = "/app";
-              Env = [ "PATH=${pkgs.coreutils}/bin/:${packages.emojied}/bin" ];
-
-              ExposedPorts = {
-                "3000/tcp" = {};
-              };
+            ExposedPorts = {
+              "3000/tcp" = {};
             };
           };
         };
+    in {
+      # checks = {
+      #   pre-commit-check = pre-commit-hooks.lib.${system}.run {
+      #     src = ./.;
+      #     hooks = {
+      #       cargo-check.enable = true;
+      #       clippy.enable = true;
+      #       rustfmt.enable = true;
+      #     };
+      #   };
+      # };
 
-        defaultPackage = packages.emojied;
+      packages.${platform} = {
+        emojied-unwrapped = emojied;
 
-        # nix run
-        apps.emojied = utils.lib.mkApp {
-          drv = packages.emojied;
+        emojied = pkgs.symlinkJoin {
+          name = "emojied";
+          paths = [ emojied ];
+          buildInputs = [ pkgs.makeWrapper ];
+
+          # https://gist.github.com/CMCDragonkai/9b65cbb1989913555c203f4fa9c23374
+          postBuild = ''
+            wrapProgram $out/bin/emojied \
+              --set APP__STATIC_ASSETS "${emojied}/bin/public"
+          '';
         };
 
-        defaultApp = apps.emojied;
+        # https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix
+        emojied-docker = buildDockerImage "latest";
+        emojied-docker-0-1-1-dev = buildDockerImage "0.1.1-dev";
 
-        devShells.ci = pkgs.mkShell {
-          buildInputs = [
-            pkgs.rustc
-            pkgs.cargo
-            pkgs.openssl
-            pkgs.pkg-config
+        default = self.packages.${platform}.emojied;
+      };
 
-            unstablepkgs.nodePackages.typescript
-            unstablepkgs.nodePackages.tailwindcss
-            unstablepkgs.esbuild
-          ];
-        };
+      # nix run
+      apps.${platform}.emojied = pkgs.mkApp {
+        drv = self.packages.emojied;
 
-        devShell = pkgs.mkShell {
-          # inherit (self.checks.${system}.pre-commit-check) shellHook;
+        default = self.packages.${platform}.emojied;
+      };
 
-          buildInputs = with pkgs; [
-            # Back-end
-            pkgs.rustc
-            pkgs.cargo
-            unstablepkgs.cargo-flamegraph
-
-            # Front-end
-            unstablepkgs.nodePackages.typescript
-            unstablepkgs.nodePackages.typescript-language-server
-            unstablepkgs.nodePackages.tailwindcss
-            unstablepkgs.esbuild
-
-            pkgs.openssl
-            pkgs.pkg-config
-
-            # Database
-            pkgs.sqitchPg
-            pkgs.perl534Packages.TAPParserSourceHandlerpgTAP
-
-            # Dev tools
-            pkgs.rust-analyzer
-            pkgs.clippy
-            pkgs.rustfmt
-            pkgs.cargo-watch
-            pkgs.flyctl
-            pkgs.zip
-          ];
-
-          PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
-        };
-      });
+      # BUG: If I use the new default syntax here, `nix-direnv` will complain.
+      # It passes `nix flake check` though. But for now, I'll leave it like this.
+      #
+      # error: flake 'git+file:///home/sekun/Projects/emojiurl' does not provide
+      # attribute 'devShells.x86_64-linux.devShell.x86_64-linux',
+      # 'packages.x86_64-linux.devShell.x86_64-linux',
+      # 'legacyPackages.x86_64-linux.devShell.x86_64-linux',
+      # 'devShell.x86_64-linux' or 'defaultPackage.x86_64-linux'
+      /* devShell.${platform} = shell; */
+      devShell.${platform} = shell;
+    }
+  );
 }
