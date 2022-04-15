@@ -4,3 +4,6 @@
 
 links 2022-03-26T02:31:20Z sekun <sekun@nixos> # Contains the links to shorten, and their identifiers
 leaderboard 2022-04-09T08:04:32Z sekun <sekun@nixos> # Leaderboard for most clicked links
+@v0.1.0 2022-04-15T08:12:19Z sekun <sekun@nixos> # Tag `v0.1.0` schema
+
+index_links 2022-04-15T08:17:24Z sekun <sekun@nixos> # Index `identifier` column of `app.links`
