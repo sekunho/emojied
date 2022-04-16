@@ -20,6 +20,15 @@ Shorten your URLs with emojis!
 
 ## Getting Started
 
+### Docker image
+
+A docker image is available here: https://hub.docker.com/r/hsekun/emojied
+
+### Pre-built binary
+
+A pre-built binary is available in the
+[releases](https://github.com/sekunho/emojied/releases) page.
+
 ### Build from source
 
 You can build the binary, and static assets with `nix`. You can also build it
@@ -40,7 +49,7 @@ the output to a VPS.
 
 `emojied` requires you to provide some environment variables, namely the ff:
 
-- `APP_STATIC_ASSETS` (required, path that directly contains `app.css`, etc.):
+- `APP__STATIC_ASSETS` (required, path that directly contains `app.css`, etc.):
 Path of `public/`
 - `PG__HOST` (required)
 - `PG__DBNAME` (required)
