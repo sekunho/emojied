@@ -10,11 +10,11 @@
   };
 
   outputs = { self, nixpkgs, nixos-unstable, naersk }: (
-    let platform = "x86_64-linux";
-        pkgs = nixpkgs.legacyPackages.${platform};
-        unstablepkgs = nixos-unstable.legacyPackages.${platform};
+    let system = "x86_64-linux";
+        pkgs = nixpkgs.legacyPackages.${system};
+        unstablepkgs = nixos-unstable.legacyPackages.${system};
 
-        naersk-lib = naersk.lib.${platform}.override {
+        naersk-lib = naersk.lib.${system}.override {
           cargo = pkgs.cargo;
           rustc = pkgs.rustc;
         };
@@ -24,7 +24,7 @@
           inherit unstablepkgs;
         };
 
-        emojied = import ./nix/emojied.nix {
+        emojied = import ./nix/modules/packages/emojied.nix {
           inherit pkgs;
           inherit unstablepkgs;
           inherit naersk-lib;
@@ -38,15 +38,14 @@
           config = {
             Cmd = [ "${self.packages.x86_64-linux.emojied}/bin/run" ];
             WorkingDir = "/app";
-            Env = [ "PATH=${pkgs.coreutils}/bin/:${self.packages.${platform}.emojied}/bin" ];
+            Env = [ "PATH=${pkgs.coreutils}/bin/:${self.packages.${system}.emojied}/bin" ];
 
             ExposedPorts = {
               "3000/tcp" = {};
             };
           };
         };
-    in {
-      # checks = {
+    in { # checks = {
       #   pre-commit-check = pre-commit-hooks.lib.${system}.run {
       #     src = ./.;
       #     hooks = {
@@ -57,7 +56,7 @@
       #   };
       # };
 
-      packages.${platform} = {
+      packages.${system} = {
         emojied-unwrapped = emojied;
 
         emojied = pkgs.symlinkJoin {
@@ -75,15 +74,16 @@
         # https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix
         emojied-docker = buildDockerImage "latest";
 
-        default = self.packages.${platform}.emojied;
+        default = self.packages.${system}.emojied;
       };
 
       # nix run
-      apps.${platform}.emojied = pkgs.mkApp {
-        drv = self.packages.emojied;
-
-        default = self.packages.${platform}.emojied;
+      apps.${system}.emojied = {
+        type = "app";
+        program = "${self.packages.${system}.emojied}/bin/emojied";
       };
+
+      nixosConfigurations.emojied = import ./nix/modules/services/emojied.nix;
 
       # BUG: If I use the new default syntax here, `nix-direnv` will complain.
       # It passes `nix flake check` though. But for now, I'll leave it like this.
@@ -93,8 +93,8 @@
       # 'packages.x86_64-linux.devShell.x86_64-linux',
       # 'legacyPackages.x86_64-linux.devShell.x86_64-linux',
       # 'devShell.x86_64-linux' or 'defaultPackage.x86_64-linux'
-      /* devShell.${platform} = shell; */
-      devShell.${platform} = shell;
+      /* devShell.${system} = shell; */
+      devShell.${system} = shell;
     }
   );
 }
