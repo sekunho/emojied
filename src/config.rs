@@ -8,6 +8,10 @@ pub struct AppConfig {
     pub host: String,
     /// PostgreSQL config
     pub pg: tokio_postgres::Config,
+
+    // Port `emojied` will run on
+    pub port: u16,
+
     /// Pool manager config
     pub manager: ManagerConfig,
     /// Pool size
@@ -69,6 +73,11 @@ impl From<num::ParseIntError> for Error {
 
 impl AppConfig {
     pub fn from_env() -> Result<AppConfig, Error> {
+        let app_port = match env::var("APP__PORT") {
+            Ok(port) => port.parse::<u16>()?,
+            Err(_) => 3000,
+        };
+
         let static_assets_path = env::var("APP__STATIC_ASSETS")
             .map_err(|_| Error::MissingStaticAssetsPath)?;
         let static_assets_path = PathBuf::from(static_assets_path);
@@ -122,6 +131,7 @@ impl AppConfig {
         Ok(AppConfig {
             host: "emojied.net".to_string(),
             pg: pg_config,
+            port: app_port,
             manager: manager_config,
             pool_size,
             ca_cert_path,
