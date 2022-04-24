@@ -111,10 +111,11 @@ you can check out the `.github/workflows/main.yml`.
 
 - `APP__STATIC_ASSETS` (required, path that directly contains `app.css`, etc.):
 Path of `public/`
+- `APP__PORT` (optional, defaults to `3000`)
 - `PG__HOST` (required)
 - `PG__DBNAME` (required)
 - `PG__USER` (required)
-- `PG__PASSWORD` (required)
+- `PG__PASSWORD` (optional, defaults to nothing)
 - `PG__PORT` (required)
 - `PG__POOL_SIZE` (optional, defaults to `22`)
 - `PG__CA_CERT` (optional, defaults to No TLS): CA certificate's file path
