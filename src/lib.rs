@@ -18,7 +18,7 @@ use std::net::SocketAddr;
 pub async fn run(config: AppConfig, handle: db::Handle) -> Result<(), hyper::Error> {
     // TODO: Read about `Arc` because I have no idea what this does.
     let handle = Arc::new(handle);
-    let config = Arc::new(config);
+    let arc_config = Arc::new(config.clone());
 
     // https://docs.rs/axum/0.4.8/axum/extract/struct.Extension.html
     let app = Router::new()
@@ -36,9 +36,11 @@ pub async fn run(config: AppConfig, handle: db::Handle) -> Result<(), hyper::Err
         .route("/stats/:id", routing::get(controllers::url_stats))
         .route("/:id", routing::get(controllers::fetch_url))
         .layer(Extension(handle))
-        .layer(Extension(config));
+        .layer(Extension(arc_config));
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], config.port));
+
+    println!("Running on port {}", config.port);
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
