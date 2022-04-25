@@ -83,7 +83,7 @@
         program = "${self.packages.${system}.emojied}/bin/emojied";
       };
 
-      nixosConfigurations.emojied = import ./nix/modules/services/emojied.nix;
+      nixosModule = import ./nix/modules/services/emojied.nix;
 
       # BUG: If I use the new default syntax here, `nix-direnv` will complain.
       # It passes `nix flake check` though. But for now, I'll leave it like this.
