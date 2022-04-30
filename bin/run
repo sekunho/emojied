@@ -1,10 +1,15 @@
 #!/bin/sh
 
-echo "Dumping CA certificate to /app/ca-certificate.crt"
-echo "-----BEGIN CERTIFICATE-----" > /app/ca-certificate.crt
-echo $CA_CERT >> /app/ca-certificate.crt
-echo "-----END CERTIFICATE-----" >> /app/ca-certificate.crt
+LOC="/app/ca-certificate.crt"
 
-echo "Executing emojied"
+echo "Dumping CA certificate to $LOC"
+
+cat <<- __EOF__ > $LOC
+-----BEGIN CERTIFICATE-----
+$CA_CERT
+-----END CERTIFICATE-----
+__EOF__
+
+echo "Executing emojied..." && sleep 2
 
 emojied
