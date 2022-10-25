@@ -50,6 +50,12 @@
           type = with types; uniq str;
           description = "Path to DB CA certificate";
         };
+
+        dbPoolSize = mkOption {
+          default = "1";
+          type = with types; uniq str;
+          description = "Path to DB CA certificate";
+        };
       };
     };
 
@@ -80,6 +86,7 @@
             PG__USER = "${cfg.dbUser}";
             PG__PORT = "${cfg.dbPort}";
             PG__PASSWORD_FILE = "${cfg.dbPasswordFile}";
+            PG__POOL_SIZE = "${cfg.dbPoolSize}";
           }
 
           (mkIf ("${cfg.dbCACertFile}" != "") {
