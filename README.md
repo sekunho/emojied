@@ -116,6 +116,8 @@ Path of `public/`
 - `PG__DBNAME` (required)
 - `PG__USER` (required)
 - `PG__PASSWORD` (optional, defaults to nothing)
+- `PG__PASSWORD_FILE` (optional, defaults to nothing): File path to the file
+containing the DB's password.
 - `PG__PORT` (required)
 - `PG__POOL_SIZE` (optional, defaults to `22`)
 - `PG__CA_CERT` (optional, defaults to No TLS): CA certificate's file path

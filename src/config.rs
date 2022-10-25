@@ -25,6 +25,7 @@ pub enum Error {
     VarError(env::VarError),
     InvalidVarFormat(num::ParseIntError),
     MissingStaticAssetsPath,
+    InvalidDBPasswordFile,
 }
 
 impl fmt::Display for Error {
@@ -40,14 +41,20 @@ impl fmt::Display for Error {
                         "An environment variable is expected to be unicode, but isn't"
                     )
                 }
-            }
+            },
 
             Error::InvalidVarFormat(error) => {
                 write!(f, "{}: Unable to parse value to integer", error)
             }
 
             Error::MissingStaticAssetsPath => {
-                write!(f, "Missing environment variable: `APP__STATIC_ASSETS=<PATH_TO_FILES>`")
+                write!(
+                    f,
+                    "Missing environment variable: `APP__STATIC_ASSETS=<PATH_TO_FILES>`"
+                )
+            }
+            Error::InvalidDBPasswordFile => {
+                write!(f, "Unable to read DB password file")
             }
         }
     }
@@ -78,8 +85,9 @@ impl AppConfig {
             Err(_) => 3000,
         };
 
-        let static_assets_path = env::var("APP__STATIC_ASSETS")
-            .map_err(|_| Error::MissingStaticAssetsPath)?;
+        let static_assets_path =
+            env::var("APP__STATIC_ASSETS").map_err(|_| Error::MissingStaticAssetsPath)?;
+
         let static_assets_path = PathBuf::from(static_assets_path);
 
         println!("Static assets: {:?}", static_assets_path);
@@ -90,14 +98,37 @@ impl AppConfig {
         };
 
         let host = env::var("PG__HOST")?;
+        println!("Database Host: {}", host);
+
         let user = env::var("PG__USER")?;
+        println!("Database User: {}", user);
+
         let dbname = env::var("PG__DBNAME")?;
+        println!("Database Name: {}", dbname);
 
         match env::var("PG__PASSWORD") {
             Ok(dbpassword) => {
+                println!("Database Password: [REDACTED]");
                 pg_config.password(&dbpassword);
+            }
+            Err(_) => match env::var("PG__PASSWORD_FILE") {
+                Ok(dbpassword_file) => {
+                    println!("Database Password File: {}", dbpassword_file);
+
+                    let dbpassword =
+                        std::fs::read(dbpassword_file).map_err(|_| Error::InvalidDBPasswordFile)?;
+
+                    let dbpassword: String = String::from_utf8(dbpassword)
+                        .map_err(|_| Error::InvalidDBPasswordFile)?
+                        .strip_suffix("\n")
+                        .ok_or(Error::InvalidDBPasswordFile)?
+                        .to_string();
+
+                    pg_config.password(&dbpassword);
+                }
+
+                Err(_) => (),
             },
-            Err(_) => (),
         }
 
         let port = match env::var("PG__PORT") {
@@ -105,20 +136,23 @@ impl AppConfig {
             Err(_e) => 5432,
         };
 
+        println!("Database Port: {}", port);
+
         let pool_size = match env::var("PG__POOL_SIZE") {
             Ok(pool_size) => pool_size.parse::<usize>()?,
             Err(_e) => 22,
         };
 
+        println!("Database Pool Size: {}", pool_size);
+
         // Not providing CA_CERT is fine
         let ca_cert_path = match env::var("PG__CA_CERT") {
             Ok(path) => {
                 pg_config.ssl_mode(SslMode::Require);
+                println!("Database CA Certificate Path: {}", path);
                 Some(path)
-            },
-            Err(_e) => {
-                None
             }
+            Err(_e) => None,
         };
 
         pg_config

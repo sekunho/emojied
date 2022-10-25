@@ -2,7 +2,7 @@
 
 (naersk-lib.buildPackage {
   pname = "emojied";
-  version = "0.1.1";
+  version = "0.1.3";
   root = ../../../.;
   nativeBuildInputs = with pkgs; [ ];
   buildInputs = with pkgs; [ openssl pkg-config ];
