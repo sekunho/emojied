@@ -16,34 +16,39 @@
           description = "Port number emojied will run on";
         };
 
-        db_host = mkOption {
+        dbHost = mkOption {
           default = "localhost";
           type = with types; str;
           description = "Host of database server";
         };
 
-        db_name = mkOption {
+        dbName = mkOption {
           default = "emojied_db";
           type = with types; uniq str;
           description = "Database name for emojied";
         };
 
-        db_user = mkOption {
+        dbUser = mkOption {
           default = "postgres";
           type = with types; uniq str;
           description = "Database user";
         };
 
-        db_password = mkOption {
-          default = "";
-          type = with types; uniq str;
-          description = "Database user's password";
-        };
-
-        db_port = mkOption {
+        dbPort = mkOption {
           default = "5432";
           type = with types; str;
           description = "Port number of database server";
+        };
+
+        dbPasswordFile = mkOption {
+          type = with types; uniq str;
+          description = "Path to DB password file";
+        };
+
+        dbCACertFile = mkOption {
+          default = "";
+          type = with types; uniq str;
+          description = "Path to DB CA certificate";
         };
       };
     };
@@ -67,17 +72,20 @@
         after = [ "network.target" ];
         description = "Start the emojied server";
 
-        environment = {
-          APP__PORT = "${cfg.port}";
-          PG__DBNAME = "${cfg.db_name}";
-          PG__HOST = "${cfg.db_host}";
-          PG__USER = "${cfg.db_user}";
-          PG__PORT = "${cfg.db_port}";
-          PG__PASSWORD = "${cfg.db_password}";
+        environment = mkMerge [
+          {
+            APP__PORT = "${cfg.port}";
+            PG__DBNAME = "${cfg.dbName}";
+            PG__HOST = "${cfg.dbHost}";
+            PG__USER = "${cfg.dbUser}";
+            PG__PORT = "${cfg.dbPort}";
+            PG__PASSWORD_FILE = "${cfg.dbPasswordFile}";
+          }
 
-          /* inherit optionalAttrs (cfg.db_password != "") */
-            /* { PG__PASSWORD = "${cfg.db_password}"; }; */
-        };
+          (mkIf ("${cfg.dbCACertFile}" != "") {
+            PG__CA_CERT = "${cfg.dbCACertFile}";
+          })
+        ];
 
         serviceConfig = {
           Type = "simple";
