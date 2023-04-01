@@ -30,8 +30,8 @@ pub async fn root(Query(params): Query<HashMap<String, String>>) -> Markup {
 
 pub async fn insert_url(
     Extension(handle): Extension<Arc<db::Handle>>,
-    Form(form_data): Form<CreateUrl>,
     Query(params): Query<HashMap<String, String>>,
+    Form(form_data): Form<CreateUrl>,
 ) -> (StatusCode, Markup) {
     let custom_url = params.get(&String::from("custom_url")).is_some();
 
