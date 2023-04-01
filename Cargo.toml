@@ -1,6 +1,6 @@
 [package]
 name = "emojied"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -12,13 +12,13 @@ edition = "2021"
 
 [dependencies]
 # Web framework
-axum = "0.5"
+axum = { version = "0.6" }
 
 # HTTP library
 hyper = { version = "0.14", features = ["full"] }
 
 # async runtime
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1.2", features = ["full"] }
 tokio-stream = "0.1"
 futures = "0.3"
 
@@ -28,7 +28,7 @@ tower = "0.4"
 # Serialize/deserialize stuff
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
-maud = { git = "https://github.com/sekunho/maud", branch = "main", features = ["axum"] }
+maud = { git = "https://github.com/lambda-fairy/maud", features = ["axum"] }
 
 # Database
 tokio-postgres = "0.7"

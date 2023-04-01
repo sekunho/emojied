@@ -5,11 +5,19 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
     nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    naersk.url = "github:nix-community/naersk";
-    # pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+
+    naersk = {
+      url = "github:nix-community/naersk";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    pre-commit-hooks = {
+      url = "github:cachix/pre-commit-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixos-unstable, naersk }: (
+  outputs = { self, nixpkgs, nixos-unstable, naersk, pre-commit-hooks }: (
     let system = "x86_64-linux";
         pkgs = nixpkgs.legacyPackages.${system};
         unstablepkgs = nixos-unstable.legacyPackages.${system};
@@ -45,7 +53,8 @@
             };
           };
         };
-    in { # checks = {
+    in {
+      # checks = {
       #   pre-commit-check = pre-commit-hooks.lib.${system}.run {
       #     src = ./.;
       #     hooks = {
@@ -84,17 +93,7 @@
       };
 
       nixosModule = import ./nix/modules/services/emojied.nix;
-
-      # BUG: If I use the new default syntax here, `nix-direnv` will complain.
-      # It passes `nix flake check` though. But for now, I'll leave it like this.
-      #
-      # error: flake 'git+file:///home/sekun/Projects/emojiurl' does not provide
-      # attribute 'devShells.x86_64-linux.devShell.x86_64-linux',
-      # 'packages.x86_64-linux.devShell.x86_64-linux',
-      # 'legacyPackages.x86_64-linux.devShell.x86_64-linux',
-      # 'devShell.x86_64-linux' or 'defaultPackage.x86_64-linux'
-      /* devShell.${system} = shell; */
-      devShell.${system} = shell;
+      devShells.${system}.default = shell;
     }
   );
 }

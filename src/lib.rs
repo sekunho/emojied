@@ -8,7 +8,6 @@ pub mod leaderboard;
 mod views;
 
 use axum::extract::Extension;
-use axum::handler::Handler;
 use axum::routing;
 use axum::Router;
 use config::AppConfig;
@@ -22,7 +21,7 @@ pub async fn run(config: AppConfig, handle: db::Handle) -> Result<(), hyper::Err
 
     // https://docs.rs/axum/0.4.8/axum/extract/struct.Extension.html
     let app = Router::new()
-        .fallback(controllers::not_found.into_service())
+        .fallback(controllers::not_found)
         .route("/", routing::get(controllers::root))
         .route("/", routing::post(controllers::insert_url))
         .route(

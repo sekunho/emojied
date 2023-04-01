@@ -30,4 +30,6 @@ pkgs.mkShell {
   ];
 
   PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+
+  APP__STATIC_ASSETS = "";
 }
