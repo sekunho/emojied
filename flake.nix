@@ -2,24 +2,15 @@
   description = "A URL shortener, except emojis";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs";
-    nixospkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     devenv.url = "github:cachix/devenv";
-
-    naersk = {
-      url = "github:nix-community/naersk";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    pre-commit-hooks = {
-      url = "github:cachix/pre-commit-hooks.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    naersk.url = "github:nix-community/naersk";
+    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
   };
 
-  outputs = { self, nixpkgs, nixospkgs, devenv, naersk, pre-commit-hooks } @ inputs: (
+  outputs = { self, nixpkgs, devenv, naersk, pre-commit-hooks } @ inputs: (
     let system = "x86_64-linux";
-        pkgs = nixospkgs.legacyPackages.${system};
+        pkgs = nixpkgs.legacyPackages.${system};
 
         naersk-lib = naersk.lib.${system}.override {
           cargo = pkgs.cargo;
@@ -89,7 +80,7 @@
         program = "${self.packages.${system}.emojied}/bin/emojied";
       };
 
-      nixosModule = import ./nix/modules/services/emojied.nix;
+      nixosModules.default = import ./nix/modules/services/emojied.nix;
 
       devShells.${system}.default = devenv.lib.mkShell {
         inherit inputs pkgs;
