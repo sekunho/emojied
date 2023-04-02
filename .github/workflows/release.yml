@@ -17,14 +17,14 @@ on:
 jobs:
   create-release:
     name: Create release
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Nix
-        uses: cachix/install-nix-action@v15
+        uses: cachix/install-nix-action@v19
         with:
           extra_nix_config: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
