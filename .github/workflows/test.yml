@@ -12,6 +12,17 @@ on:
       - 'src/**/*'
       - 'public/purify.min.js'
 
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/test.yml'
+      - 'flake.*'
+      - 'nix/*'
+      - 'Cargo.*'
+      - 'assets/**/*'
+      - 'src/**/*'
+      - 'public/purify.min.js'
+
 jobs:
   test:
     name: Build & test
@@ -23,6 +34,9 @@ jobs:
 
       - name: Setup Nix
         uses: cachix/install-nix-action@v19
+
+      - name: Sanity check
+        run: nix flake check
 
       - name: Build & test
         run: |
