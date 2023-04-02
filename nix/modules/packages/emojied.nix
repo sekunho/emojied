@@ -1,16 +1,16 @@
-{ pkgs, unstablepkgs, naersk-lib }:
+{ pkgs, naersk-lib }:
 
 (naersk-lib.buildPackage {
   pname = "emojied";
-  version = "0.1.3";
+  version = "0.1.4";
   root = ../../../.;
   nativeBuildInputs = with pkgs; [ ];
   buildInputs = with pkgs; [ openssl pkg-config ];
 }).overrideAttrs (old: {
   nativeBuildInputs = old.nativeBuildInputs ++ [
-    unstablepkgs.nodePackages.typescript
-    unstablepkgs.nodePackages.tailwindcss
-    unstablepkgs.esbuild
+    pkgs.nodePackages.typescript
+    pkgs.nodePackages.tailwindcss
+    pkgs.esbuild
   ];
 
   doCheck = true;

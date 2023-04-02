@@ -21,3 +21,5 @@ public/app.css
 # flamegraph
 perf.data*
 flamegraph.svg
+
+.devenv
