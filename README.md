@@ -29,32 +29,40 @@ yourself; sorry!
 
 Here are the versions of the important ones:
 
-- `rustc`: 1.58.1
-- `cargo`: 1.58.0
-- `postgresql`: 14.1
-- `sqitch`: 1.1.0
-- `tailwindcss`: 3.0.23
-- `esbuild`: 0.14.27
-- `typescript`: 4.6.2
-- `openssl`: 1.1.1n 15 Mar 2022
+- `rustc`: 1.67.1
+- `cargo`: 1.67.0
+- `postgresql`: 15.2
+- `sqitch`: 1.3.1
+- `tailwindcss`: 3.2.7
+- `esbuild`: 0.17.14
+- `typescript`: 4.9.5
+- `openssl`: 3.0.8 (7 Feb 2023)
 
 Everything else doesn't matter too much I think. You could probably just use
 whatever version of `rust-analyzer` you have, for example.
 
 However, if you _do_ have Nix 2.7.0 (with Flakes), you probably know how to
 use it anyway. `nix develop` (or don't if you have `nix-direnv` already), and
-dev away.
-
-Oh, you also have to set up the database called `emojied_db` (locally).
+dev away. You should probably also setup the PG server with `devenv up`, and
+run the sqitch migration (see below) to avoid the hassle of setting up Postgres
+manually. Otherwise, you need to set it up, and create a DB called
+`emojied_development` for local dev stuff.
 
 Once you've done whatever to get all the dependencies, you can do the ff:
 
 ```
-sqitch deploy
+PGPASSWORD=emojied sqitch deploy
 
 # You can also do `cargo run` if you don't want to use `cargo-watch`.
 PG__DBNAME="YOUR_DB_NAME_HERE" PG__HOST="localhost" PG__USER="YOUR_USER_HERE" PG__PORT="5432" A
 PP__STATIC_ASSETS="./public" cargo watch -x run
+```
+
+or if you're using `nix`:
+
+```
+PGPASSWORD=emojied sqitch deploy
+nix run
 ```
 
 This should run a server in port `3000`, which you can access in http://localhost:3000.
