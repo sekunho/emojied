@@ -3,21 +3,20 @@ pub mod config;
 mod controllers;
 pub mod db;
 mod emoji;
-pub mod url;
 pub mod leaderboard;
+pub mod state;
+pub mod url;
 mod views;
 
-use axum::extract::Extension;
 use axum::routing;
 use axum::Router;
-use config::AppConfig;
-use std::sync::Arc;
+use state::AppState;
 use std::net::SocketAddr;
+use std::sync::Arc;
 
-pub async fn run(config: AppConfig, handle: db::Handle) -> Result<(), hyper::Error> {
-    // TODO: Read about `Arc` because I have no idea what this does.
-    let handle = Arc::new(handle);
-    let arc_config = Arc::new(config.clone());
+pub async fn run(app_state: AppState) -> Result<(), hyper::Error> {
+    let config = app_state.config.clone();
+    let handle_state = Arc::new(app_state);
 
     // https://docs.rs/axum/0.4.8/axum/extract/struct.Extension.html
     let app = Router::new()
@@ -34,8 +33,7 @@ pub async fn run(config: AppConfig, handle: db::Handle) -> Result<(), hyper::Err
         .route("/purify.min.js", routing::get(controllers::purifyjs))
         .route("/stats/:id", routing::get(controllers::url_stats))
         .route("/:id", routing::get(controllers::fetch_url))
-        .layer(Extension(handle))
-        .layer(Extension(arc_config));
+        .with_state(handle_state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], config.port));
 

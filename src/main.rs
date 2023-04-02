@@ -1,8 +1,9 @@
 #![forbid(unsafe_code)]
 
-use emojied::db;
 use std::process;
 
+use emojied::db;
+use emojied::state::AppState;
 use emojied::config::AppConfig;
 
 #[tokio::main]
@@ -17,8 +18,14 @@ async fn main() {
     match db::Handle::new(config.clone()).await {
         Ok(db_handle) => {
             eprintln!("Database connection established");
+
+            let state = AppState {
+                config,
+                db_handle,
+            };
+
             // https://docs.rs/axum/0.4.8/axum/extract/struct.Extension.html
-            if let Err(e) = emojied::run(config, db_handle).await {
+            if let Err(e) = emojied::run(state).await {
                 eprintln!("Application error: {}", e);
                 process::exit(1);
             }

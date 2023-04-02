@@ -5,6 +5,7 @@ use postgres_native_tls::MakeTlsConnector;
 use std::{fmt, io};
 use tokio_postgres::NoTls;
 
+#[derive(Clone)]
 pub struct Handle {
     pub pool: Pool,
 }
