@@ -2,7 +2,6 @@
   description = "A URL shortener, except emojis";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs";
     nixospkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     devenv.url = "github:cachix/devenv";
 
@@ -17,7 +16,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixospkgs, devenv, naersk, pre-commit-hooks } @ inputs: (
+  outputs = { self, nixospkgs, devenv, naersk, pre-commit-hooks } @ inputs: (
     let system = "x86_64-linux";
         pkgs = nixospkgs.legacyPackages.${system};
 
