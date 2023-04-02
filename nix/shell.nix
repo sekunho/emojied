@@ -1,35 +1,70 @@
-{ pkgs, unstablepkgs }:
+{ pkgs, ... }: rec {
+  env = {
+    PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+    PG__DBNAME = "emojied_development";
+    PG__HOST = "127.0.0.1";
+    PG__USER = "emojied";
+    PG__PASSWORD = "emojied";
+    PG__PORT = 5433;
+    APP__STATIC_ASSETS = "./public";
+  };
 
-pkgs.mkShell {
-  buildInputs = [
-    # Back-end
-    pkgs.rustc
-    pkgs.cargo
-    unstablepkgs.cargo-flamegraph
+  packages = with pkgs; [
+    nodePackages.tailwindcss
+    esbuild
+    openssl
+    pkg-config
 
-    # Front-end
-    unstablepkgs.nodePackages.typescript
-    unstablepkgs.nodePackages.typescript-language-server
-    unstablepkgs.nodePackages.tailwindcss
-    unstablepkgs.esbuild
-
-    pkgs.openssl
-    pkgs.pkg-config
-
-    # Database
-    pkgs.sqitchPg
-    pkgs.perl534Packages.TAPParserSourceHandlerpgTAP
-
-    # Dev tools
-    pkgs.rust-analyzer
-    pkgs.clippy
-    pkgs.rustfmt
-    pkgs.cargo-watch
-    pkgs.flyctl
-    pkgs.zip
+    sqitchPg
+    perl534Packages.TAPParserSourceHandlerpgTAP
   ];
 
-  PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+  languages = {
+    rust.enable = true;
+    typescript.enable = true;
+  };
 
-  APP__STATIC_ASSETS = "";
+  services.postgres = {
+    enable = true;
+    port = env.PG__PORT;
+    package = pkgs.postgresql_15;
+    listen_addresses = env.PG__HOST;
+    initialDatabases = [ { name = env.PG__DBNAME; } ];
+
+    initialScript = ''
+      CREATE USER ${env.PG__USER} SUPERUSER PASSWORD '${env.PG__PASSWORD}';
+    '';
+  };
 }
+
+/* pkgs.mkShell { */
+/*   buildInputs = with pkgs; [ */
+/*     # Back-end */
+/*     rustc */
+/*     cargo */
+/*     cargo-flamegraph */
+
+/*     # Front-end */
+/*     nodePackages.typescript */
+/*     nodePackages.typescript-language-server */
+/*     nodePackages.tailwindcss */
+/*     esbuild */
+
+/*     openssl */
+/*     pkg-config */
+
+/*     # Database */
+/*     sqitchPg */
+/*     perl534Packages.TAPParserSourceHandlerpgTAP */
+
+/*     # Dev tools */
+/*     rust-analyzer */
+/*     clippy */
+/*     rustfmt */
+/*     cargo-watch */
+/*     flyctl */
+/*     zip */
+/*   ]; */
+
+
+/* } */

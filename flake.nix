@@ -1,10 +1,10 @@
 {
-  # Min nix version: 2.7.0
   description = "A URL shortener, except emojis";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
-    nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixospkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    devenv.url = "github:cachix/devenv";
 
     naersk = {
       url = "github:nix-community/naersk";
@@ -17,10 +17,9 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixos-unstable, naersk, pre-commit-hooks }: (
+  outputs = { self, nixpkgs, nixospkgs, devenv, naersk, pre-commit-hooks } @ inputs: (
     let system = "x86_64-linux";
-        pkgs = nixpkgs.legacyPackages.${system};
-        unstablepkgs = nixos-unstable.legacyPackages.${system};
+        pkgs = nixospkgs.legacyPackages.${system};
 
         naersk-lib = naersk.lib.${system}.override {
           cargo = pkgs.cargo;
@@ -29,12 +28,10 @@
 
         shell = import ./nix/shell.nix {
           inherit pkgs;
-          inherit unstablepkgs;
         };
 
         emojied = import ./nix/modules/packages/emojied.nix {
           inherit pkgs;
-          inherit unstablepkgs;
           inherit naersk-lib;
         };
 
@@ -93,7 +90,14 @@
       };
 
       nixosModule = import ./nix/modules/services/emojied.nix;
-      devShells.${system}.default = shell;
+
+      devShells.${system}.default = devenv.lib.mkShell {
+        inherit inputs pkgs;
+
+        modules = [
+          ./nix/shell.nix
+        ];
+      };
     }
   );
 }
