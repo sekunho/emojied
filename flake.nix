@@ -36,8 +36,14 @@
         strictDeps = true;
         pname = "emojied";
         name = "emojied";
-        buildInputs = [ pkgs.openssl ];
-        nativeBuildInputs = [ ];
+
+        buildInputs = [
+          pkgs.openssl
+        ];
+
+        nativeBuildInputs = [
+          pkgs.pkg-config
+        ];
       };
 
       cargoArtifacts = craneLib.buildDepsOnly commonArgs;
