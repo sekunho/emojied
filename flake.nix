@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:sekunho/nixpkgs?ref=feat/sqitch-sqlite";
-    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    git-hooks.url = "github:cachix/git-hooks.nix";
 
     crane.url = "github:ipetkov/crane";
 
@@ -14,7 +14,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, pre-commit-hooks, crane, fenix } @ inputs: (
+  outputs = { self, nixpkgs, git-hooks, crane, fenix } @ inputs: (
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -59,16 +59,16 @@
       };
     in
     {
-      # checks = {
-      #   pre-commit-check = pre-commit-hooks.lib.${system}.run {
-      #     src = ./.;
-      #     hooks = {
-      #       cargo-check.enable = true;
-      #       clippy.enable = true;
-      #       rustfmt.enable = true;
-      #     };
-      #   };
-      # };
+      checks = {
+        pre-commit-check = git-hooks.lib.${system}.run {
+          src = ./.;
+          hooks = {
+            cargo-check.enable = true;
+            clippy.enable = true;
+            rustfmt.enable = true;
+          };
+        };
+      };
 
       packages.${system} = {
         emojied-unwrapped = emojied;
