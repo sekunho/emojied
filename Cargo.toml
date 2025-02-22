@@ -1,46 +1,63 @@
-[package]
-name = "emojied"
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[profile.release]
+lto = true
+panic = "abort"
+codegen-units = 1
+
+[profile.dev.package.backtrace]
+opt-level = 3
+
+[workspace.package]
 version = "0.1.5"
 edition = "2021"
+rust-version = "1.84.1"
+include = ["**/*.rs", "Cargo.toml", "crates/**/*.sql"]
+repository = "https://github.com/sekunho/emojied"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace.dependencies]
+web = { path = "crates/web" }
+bin = { path = "crates/bin" }
 
-# [profile.release]
-# strip = true
-# opt-level = "z"
-# lto = true
+# HTTP
+axum = { version = "0.8" }
+hyper = { version = "1.6", features = ["full"] }
+tower = "0.5"
+tower-http = { version = "0.6.2", features = ["fs"] }
 
-[dependencies]
-# Web framework
-axum = { version = "0.6" }
-
-# HTTP library
-hyper = { version = "0.14", features = ["full"] }
-
-# async runtime
-tokio = { version = "1.2", features = ["full"] }
+# Async
+tokio = { version = "1.43", features = ["net", "rt-multi-thread", "signal"] }
 tokio-stream = "0.1"
 futures = "0.3"
-
-# Middleware
-tower = "0.4"
 
 # Serialize/deserialize stuff
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
-maud = { git = "https://github.com/lambda-fairy/maud", features = ["axum"] }
+
+# Templating
+maud = { version = "0.27", features = ["axum"] }
 
 # Database
-tokio-postgres = "0.7"
-deadpool-postgres = { version = "0.10", features = ["serde"] }
+su_sqlite = { git = "https://github.com/sekunho/pkg" }
+deadpool-sqlite = { version = "0.10" }
 
-# native-tls
-native-tls = "0.2"
-postgres-native-tls = "0.5"
+# Logging
+tracing = { version = "0.1" }
+valuable = { version = "0.1", features = ["derive"] }
+tracing-subscriber = { version = "0.3", features = [
+  "env-filter",
+  "fmt",
+  "json",
+] }
 
-tracing = "0.1"
+# Error
+thiserror = { version = "2.0" }
 
-rand = "0.8"
+config = "0.15.8"
+
+rand = "0.9"
 unic-emoji-char = "0.9"
 unic-char-range = "0.9"
 unicode-segmentation = "1.9"

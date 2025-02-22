@@ -1,0 +1,21 @@
+[package]
+name = "bin"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+include.workspace = true
+repository.workspace = true
+
+[dependencies]
+web.workspace = true
+su_sqlite.workspace = true
+
+tokio.workspace = true
+
+tracing.workspace = true
+valuable.workspace = true
+tracing-subscriber.workspace = true
+
+[[bin]]
+name = "moneyman"
+path = "src/main.rs"

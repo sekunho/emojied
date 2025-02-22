@@ -2,11 +2,11 @@
   "nodes": {
     "crane": {
       "locked": {
-        "lastModified": 1738636942,
-        "narHash": "sha256-DJxR9JrloFKYKFblX3ji/Dxv5S/QTXgytEEEycxQeVs=",
+        "lastModified": 1739053031,
+        "narHash": "sha256-LrMDRuwAlRFD2T4MgBSRd1s2VtOE+Vl1oMCNu3RpPE0=",
         "owner": "ipetkov",
         "repo": "crane",
-        "rev": "83be6c2350b607aa58c1b281b400c96d85a64fbe",
+        "rev": "112e6591b2d6313b1bd05a80a754a8ee42432a7e",
         "type": "github"
       },
       "original": {
@@ -23,11 +23,11 @@
         "rust-analyzer-src": []
       },
       "locked": {
-        "lastModified": 1738564312,
-        "narHash": "sha256-awAp1Qe+c95PQxP7v+Zfse+w3URaP3UQLCRlaPMzYtE=",
+        "lastModified": 1739601191,
+        "narHash": "sha256-mAUJ+9f8cevpZWfMbO4rxHRgxaW0hSGLFw4zxssJApU=",
         "owner": "nix-community",
         "repo": "fenix",
-        "rev": "d99d2a562b9c9d5f0e4399e5bb677b37a791c7eb",
+        "rev": "56b82ec9192365904927ca3acbb39d7ef2dfbf3d",
         "type": "github"
       },
       "original": {
@@ -111,16 +111,16 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1738638087,
-        "narHash": "sha256-/7ca2vzDxLmeKZKeRA0yH9sJgWVjlX2Swyph1WeQiac=",
-        "owner": "sekunho",
+        "lastModified": 1739451785,
+        "narHash": "sha256-3ebRdThRic9bHMuNi2IAA/ek9b32bsy8F5R4SvGTIog=",
+        "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "90941712b56ecded7494a20de79fa0ac1ea15cf1",
+        "rev": "1128e89fd5e11bb25aedbfc287733c6502202ea9",
         "type": "github"
       },
       "original": {
-        "owner": "sekunho",
-        "ref": "feat/sqitch-sqlite",
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
         "repo": "nixpkgs",
         "type": "github"
       }

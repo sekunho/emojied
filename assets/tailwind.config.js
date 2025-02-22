@@ -2,8 +2,8 @@
 // https://tailwindcss.com/docs/configuration
 module.exports = {
   content: [
-    './src/views/*.rs',
-    './src/views.rs',
+    './crates/web/src/views/*.rs',
+    './crates/web/src/views.rs',
     './public/**/*.html',
     './assets/**/*.ts'
   ],

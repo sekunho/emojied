@@ -2,7 +2,7 @@
   description = "A URL shortener, except emojis";
 
   inputs = {
-    nixpkgs.url = "github:sekunho/nixpkgs?ref=feat/sqitch-sqlite";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     git-hooks.url = "github:cachix/git-hooks.nix";
 
     crane.url = "github:ipetkov/crane";
@@ -13,10 +13,9 @@
       inputs.rust-analyzer-src.follows = "";
     };
   };
-
-  outputs = { self, nixpkgs, git-hooks, crane, fenix } @ inputs: (
+  outputs = { self, nixpkgs, git-hooks, crane, fenix }: (
     let
-      system = "x86_64-linux";
+      system = "aarch64-darwin";
       pkgs = nixpkgs.legacyPackages.${system};
 
       craneLib = (crane.mkLib pkgs).overrideToolchain

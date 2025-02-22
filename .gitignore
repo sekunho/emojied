@@ -23,3 +23,5 @@ perf.data*
 flamegraph.svg
 
 .devenv
+.DS_Store
+*.db*

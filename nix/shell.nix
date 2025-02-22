@@ -1,19 +1,28 @@
 { pkgs, ... }: rec {
   PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
-  PG__DBNAME = "emojied_development";
-  PG__HOST = "127.0.0.1";
-  PG__USER = "emojied";
-  PG__PASSWORD = "emojied";
-  PG__PORT = 5433;
-  APP__STATIC_ASSETS = "./public";
+  APP__SERVER_PORT = 3000;
+  APP__SERVER__STATIC_ASSETS = "./public";
+  APP__DATABASE__NAME = "emojied_local.db";
 
   buildInputs = with pkgs; [
     nodePackages.tailwindcss
     esbuild
     openssl
     pkg-config
+    cargo-watch
+
+    sqitchSqlite
+    sqlite
+
+    git
 
     nil
     nixpkgs-fmt
-  ];
+  ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
+    libiconv
+    darwin.apple_sdk.frameworks.CoreFoundation
+    darwin.apple_sdk.frameworks.CoreServices
+    darwin.apple_sdk.frameworks.Security
+    darwin.apple_sdk.frameworks.SystemConfiguration
+  ]);
 }
