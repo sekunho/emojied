@@ -1,0 +1,35 @@
+[package]
+name = "web"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+include.workspace = true
+repository.workspace = true
+
+[dependencies]
+axum.workspace = true
+hyper.workspace = true
+tower.workspace = true
+tower-http.workspace = true
+
+maud.workspace = true
+
+tokio.workspace = true
+tokio-stream.workspace = true
+
+su_sqlite.workspace = true
+deadpool-sqlite.workspace = true
+
+serde.workspace = true
+serde_json.workspace = true
+
+config.workspace = true
+
+thiserror.workspace = true
+tracing.workspace = true
+
+rand.workspace = true
+unic-emoji-char.workspace = true
+unic-char-range.workspace = true
+unicode-segmentation.workspace = true
+tiny_id.workspace = true

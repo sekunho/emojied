@@ -1,21 +1,22 @@
-pub mod url;
-pub mod status;
 pub mod leaderboard;
+pub mod root;
+pub mod status;
+pub mod url;
 
-use maud::{html, Markup, DOCTYPE};
 use crate::components::icon;
+use maud::{html, Markup, DOCTYPE};
 
 fn header(title: &str) -> Markup {
     html! {
         (DOCTYPE)
         meta charset="utf-8";
-        link rel="stylesheet" href="/app.css";
+        link rel="stylesheet" href="/assets/app.css";
         link rel="preconnect" href="https://fonts.googleapis.com";
         link rel="preconnect" href="https://fonts.gstatic.com" crossorigin;
         link href="https://fonts.googleapis.com/css2?family=Vollkorn:wght@600&display=swap&text=emojidtladrbo" rel="stylesheet";
         meta name="viewport" content="width=device-width, initial-scale=1.0";
 
-        script src="/purify.min.js" {}
+        script src="/assets/purify.min.js" {}
 
         title { (title) }
     }
@@ -86,7 +87,7 @@ pub fn wrapper(inner_content: &Markup) -> Markup {
 
             (footer())
 
-            script src="/app.js" {}
+            script src="/assets/app.js" {}
         }
     }
 }

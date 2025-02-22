@@ -39,7 +39,7 @@ pub fn render(data: RootData) -> Markup {
         }
     };
 
-    wrapper(home_content)
+    wrapper(&home_content)
 }
 
 fn form(custom_url: bool) -> Markup {
@@ -139,7 +139,7 @@ fn heading() -> Markup {
 
 /// Randomly picks out an emoji from the list
 fn get_random_emoji() -> String {
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
 
     ['🐵', '🍆', '🎱', '😶']
         .into_iter()

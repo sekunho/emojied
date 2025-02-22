@@ -2,56 +2,78 @@
   description = "A URL shortener, except emojis";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    devenv.url = "github:cachix/devenv";
-    naersk.url = "github:nix-community/naersk";
-    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    git-hooks.url = "github:cachix/git-hooks.nix";
+
+    crane.url = "github:ipetkov/crane";
+
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.rust-analyzer-src.follows = "";
+    };
   };
+  outputs = { self, nixpkgs, git-hooks, crane, fenix }: (
+    let
+      system = "aarch64-darwin";
+      pkgs = nixpkgs.legacyPackages.${system};
 
-  outputs = { self, nixpkgs, devenv, naersk, pre-commit-hooks } @ inputs: (
-    let system = "x86_64-linux";
-        pkgs = nixpkgs.legacyPackages.${system};
+      craneLib = (crane.mkLib pkgs).overrideToolchain
+        fenix.packages.${system}.stable.toolchain;
 
-        naersk-lib = naersk.lib.${system}.override {
-          cargo = pkgs.cargo;
-          rustc = pkgs.rustc;
+      src = pkgs.lib.cleanSourceWith {
+        src = ./.;
+
+        filter = path: type:
+          (craneLib.filterCargoSources path type)
+        ;
+      };
+
+      commonArgs = {
+        inherit src;
+        version = "0.1.5";
+        strictDeps = true;
+        pname = "emojied";
+        name = "emojied";
+
+        buildInputs = [
+          pkgs.openssl
+        ];
+
+        nativeBuildInputs = [
+          pkgs.pkg-config
+        ];
+      };
+
+      cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+
+      emojied = craneLib.buildPackage (commonArgs // {
+        inherit cargoArtifacts;
+        doCheck = false;
+        CARGO_PROFILE = "release";
+      });
+
+      emojied-image = pkgs.dockerTools.streamLayeredImage {
+        name = "emojied";
+        tag = "latest";
+        contents = [ self.packages.${system}.emojied ];
+
+        config = {
+          Cmd = [ "/bin/emojied" ];
         };
-
-        shell = import ./nix/shell.nix {
-          inherit pkgs;
-        };
-
-        emojied = import ./nix/modules/packages/emojied.nix {
-          inherit pkgs;
-          inherit naersk-lib;
-        };
-
-        buildDockerImage = tag: pkgs.dockerTools.buildImage {
-          name = "emojied-docker";
-          tag = tag;
-          contents = [ pkgs.bash ];
-
-          config = {
-            Cmd = [ "${self.packages.x86_64-linux.emojied}/bin/run" ];
-            WorkingDir = "/app";
-            Env = [ "PATH=${pkgs.coreutils}/bin/:${self.packages.${system}.emojied}/bin" ];
-
-            ExposedPorts = {
-              "3000/tcp" = {};
-            };
+      };
+    in
+    {
+      checks = {
+        pre-commit-check = git-hooks.lib.${system}.run {
+          src = ./.;
+          hooks = {
+            cargo-check.enable = true;
+            clippy.enable = true;
+            rustfmt.enable = true;
           };
         };
-    in {
-      # checks = {
-      #   pre-commit-check = pre-commit-hooks.lib.${system}.run {
-      #     src = ./.;
-      #     hooks = {
-      #       cargo-check.enable = true;
-      #       clippy.enable = true;
-      #       rustfmt.enable = true;
-      #     };
-      #   };
-      # };
+      };
 
       packages.${system} = {
         emojied-unwrapped = emojied;
@@ -68,9 +90,7 @@
           '';
         };
 
-        # https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix
-        emojied-docker = buildDockerImage "latest";
-
+        emojied-docker = emojied-image;
         default = self.packages.${system}.emojied;
       };
 
@@ -81,14 +101,7 @@
       };
 
       nixosModules.default = import ./nix/modules/services/emojied.nix;
-
-      devShells.${system}.default = devenv.lib.mkShell {
-        inherit inputs pkgs;
-
-        modules = [
-          ./nix/shell.nix
-        ];
-      };
+      devShells.${system}.default = craneLib.devShell (import ./nix/shell.nix { inherit pkgs; });
     }
   );
 }

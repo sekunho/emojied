@@ -1,70 +1,28 @@
 { pkgs, ... }: rec {
-  env = {
-    PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
-    PG__DBNAME = "emojied_development";
-    PG__HOST = "127.0.0.1";
-    PG__USER = "emojied";
-    PG__PASSWORD = "emojied";
-    PG__PORT = 5433;
-    APP__STATIC_ASSETS = "./public";
-  };
+  PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+  APP__SERVER_PORT = 3000;
+  APP__SERVER__STATIC_ASSETS = "./public";
+  APP__DATABASE__NAME = "emojied_local.db";
 
-  packages = with pkgs; [
+  buildInputs = with pkgs; [
     nodePackages.tailwindcss
     esbuild
     openssl
     pkg-config
+    cargo-watch
 
-    sqitchPg
-    perl534Packages.TAPParserSourceHandlerpgTAP
-  ];
+    sqitchSqlite
+    sqlite
 
-  languages = {
-    rust.enable = true;
-    typescript.enable = true;
-  };
+    git
 
-  services.postgres = {
-    enable = true;
-    port = env.PG__PORT;
-    package = pkgs.postgresql_15;
-    listen_addresses = env.PG__HOST;
-    initialDatabases = [ { name = env.PG__DBNAME; } ];
-
-    initialScript = ''
-      CREATE USER ${env.PG__USER} SUPERUSER PASSWORD '${env.PG__PASSWORD}';
-    '';
-  };
+    nil
+    nixpkgs-fmt
+  ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
+    libiconv
+    darwin.apple_sdk.frameworks.CoreFoundation
+    darwin.apple_sdk.frameworks.CoreServices
+    darwin.apple_sdk.frameworks.Security
+    darwin.apple_sdk.frameworks.SystemConfiguration
+  ]);
 }
-
-/* pkgs.mkShell { */
-/*   buildInputs = with pkgs; [ */
-/*     # Back-end */
-/*     rustc */
-/*     cargo */
-/*     cargo-flamegraph */
-
-/*     # Front-end */
-/*     nodePackages.typescript */
-/*     nodePackages.typescript-language-server */
-/*     nodePackages.tailwindcss */
-/*     esbuild */
-
-/*     openssl */
-/*     pkg-config */
-
-/*     # Database */
-/*     sqitchPg */
-/*     perl534Packages.TAPParserSourceHandlerpgTAP */
-
-/*     # Dev tools */
-/*     rust-analyzer */
-/*     clippy */
-/*     rustfmt */
-/*     cargo-watch */
-/*     flyctl */
-/*     zip */
-/*   ]; */
-
-
-/* } */

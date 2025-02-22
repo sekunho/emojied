@@ -42,4 +42,3 @@ jobs:
         run: |
           nix build .#emojied-docker
           docker load < result
-
