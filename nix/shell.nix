@@ -16,7 +16,7 @@
     pkg-config
 
     sqitchPg
-    perl534Packages.TAPParserSourceHandlerpgTAP
+    perl540Packages.TAPParserSourceHandlerpgTAP
   ];
 
   languages = {
